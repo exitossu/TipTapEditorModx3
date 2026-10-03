@@ -1,0 +1,112 @@
+// Editor UI styles. Everything is scoped under .tiptapeditor: no global element selectors,
+// so the MODX manager is never restyled. Content styles live in _content.scss.
+
+@use 'tokens';
+@use 'content';
+@use 'toolbar';
+@use 'dialog';
+@use 'assist';
+
+.tiptapeditor {
+    @include tokens.custom-properties;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    background: var(--tiptapeditor-bg);
+    color: var(--tiptapeditor-fg);
+    font-family: var(--tiptapeditor-font);
+
+    &:focus-within {
+        border-color: var(--tiptapeditor-focus);
+        box-shadow: 0 0 0 1px var(--tiptapeditor-focus);
+    }
+
+    &__content {
+        overflow-y: auto;
+        cursor: text;
+    }
+
+    &__editable {
+        min-height: inherit;
+        padding: 12px 16px;
+        outline: none;
+    }
+
+    // HTML source mode (ui/SourceView.js): a plain textarea in place of the editing area.
+    &__source {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 120px;
+        margin: 0;
+        padding: 12px 16px;
+        border: 0;
+        border-radius: 0 0 var(--tiptapeditor-radius) var(--tiptapeditor-radius);
+        background: #fbfcfd;
+        color: var(--tiptapeditor-fg);
+        font-family: Consolas, Menlo, 'DejaVu Sans Mono', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        tab-size: 4;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        resize: vertical;
+        outline: none;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+}
+
+// Original textarea, hidden only after the editor started successfully.
+// Kept in the DOM and in the form so MODX saves it as usual.
+.tiptapeditor-source--hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+}
+
+.tiptapeditor-notice {
+    @include tokens.custom-properties;
+
+    margin: 0 0 6px;
+    padding: 6px 10px;
+    border-left: 3px solid var(--tiptapeditor-muted);
+    border-radius: var(--tiptapeditor-radius);
+    background: #f3f5f7;
+    color: var(--tiptapeditor-fg);
+    font-size: 12px;
+    line-height: 1.4;
+
+    &--error {
+        border-left-color: #c0392b;
+        background: #fdf1f0;
+    }
+}
+
+// Short status message inside an editor (ui/Message.js).
+.tiptapeditor__message {
+    padding: 6px 10px;
+    border-top: 1px solid var(--tiptapeditor-border);
+    background: #f3f5f7;
+    color: var(--tiptapeditor-fg);
+    font-size: 12px;
+    line-height: 1.4;
+
+    &[hidden] {
+        display: none;
+    }
+
+    &--error {
+        background: #fdf1f0;
+        color: #a5281b;
+    }
+}

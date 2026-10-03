@@ -1,0 +1,21 @@
+<p>{$pagetitle} — {$resource.id} — {$_modx->resource.id}</p>
+{if $price}
+<p class="price">{$price}</p>
+{elseif $sale}
+<p>Sale</p>
+{else}
+<p>No price</p>
+{/if}
+<ul>
+{foreach $items as $item}
+<li>{$item.name}</li>
+{/foreach}
+</ul>
+{set $foo = 'bar'}
+{include 'chunkName'}
+{$_modx->runSnippet('pdoResources', [
+    'parents' => 10
+])}
+<p>Inline {if $a}yes{else}no{/if} and {* a comment *}.</p>
+{ignore}<p>{$not.parsed}</p>{/ignore}
+<style>.box { color: red }</style>

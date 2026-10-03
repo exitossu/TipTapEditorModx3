@@ -1,0 +1,14 @@
+{
+  "name": "tiptapeditor/core",
+  "description": "TipTapEditor for MODX Revolution 3: PHP sources. Autoloading at runtime is registered by bootstrap.php.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "TipTapEditor\\": "src/"
+    }
+  }
+}

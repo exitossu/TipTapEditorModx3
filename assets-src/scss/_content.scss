@@ -1,0 +1,407 @@
+// Minimal readable defaults for content inside the editor. Scoped to the editable area;
+// site styles from tiptapeditor.content_css are applied on top in a later stage.
+
+.tiptapeditor__content .ProseMirror {
+    font-size: 14px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+
+    > * + * {
+        margin-top: 0.75em;
+    }
+
+    p,
+    ul,
+    ol,
+    blockquote,
+    pre,
+    h1, h2, h3, h4, h5, h6 {
+        margin-bottom: 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    h1 { font-size: 2em; }
+    h2 { font-size: 1.6em; }
+    h3 { font-size: 1.35em; }
+    h4 { font-size: 1.15em; }
+    h5 { font-size: 1em; }
+    h6 { font-size: 0.9em; }
+
+    ul,
+    ol {
+        padding-left: 1.5em;
+    }
+
+    ul { list-style: disc; }
+    ol { list-style: decimal; }
+
+    blockquote {
+        padding-left: 1em;
+        border-left: 3px solid var(--tiptapeditor-border);
+        color: var(--tiptapeditor-muted);
+    }
+
+    code {
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        background: #f1f3f5;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9em;
+    }
+
+    pre {
+        padding: 0.75em 1em;
+        border-radius: var(--tiptapeditor-radius);
+        background: #f1f3f5;
+        overflow-x: auto;
+
+        code {
+            padding: 0;
+            background: none;
+        }
+    }
+
+    a {
+        color: var(--tiptapeditor-accent);
+        text-decoration: underline;
+    }
+
+    hr {
+        border: 0;
+        border-top: 1px solid var(--tiptapeditor-border);
+    }
+
+    strong { font-weight: 700; }
+    em { font-style: italic; }
+}
+
+.tiptapeditor__content .ProseMirror img {
+    max-width: 100%;
+    height: auto;
+
+    &.ProseMirror-selectednode {
+        outline: 2px solid var(--tiptapeditor-focus);
+        outline-offset: 1px;
+    }
+
+    // Default alignment classes (config imageAlignClasses), so the choice is visible while
+    // editing. The site's own CSS decides how they look on the frontend.
+    &.align-left {
+        float: left;
+        margin: 0 1em 0.5em 0;
+    }
+
+    &.align-right {
+        float: right;
+        margin: 0 0 0.5em 1em;
+    }
+
+    &.align-center {
+        display: block;
+        margin: 0.5em auto;
+    }
+}
+
+.tiptapeditor__content .ProseMirror::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.tiptapeditor__content .ProseMirror {
+    // Tables (extensions/ModxTable.js): a scroll container per table, visible cell borders
+    // and the cell selection of prosemirror-tables.
+    .tiptapeditor__table {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    table {
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    td,
+    th {
+        position: relative;
+        min-width: 3em;
+        padding: 4px 8px;
+        border: 1px solid #ced4da;
+        vertical-align: top;
+
+        > p {
+            margin: 0;
+        }
+
+        > * + * {
+            margin-top: 0.5em;
+        }
+    }
+
+    th {
+        background: #f1f3f5;
+        font-weight: 600;
+    }
+
+    th:not([align]) {
+        text-align: start;
+    }
+
+    .selectedCell::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(53, 117, 203, 0.15);
+        pointer-events: none;
+    }
+}
+
+.tiptapeditor__content .ProseMirror {
+    // MODX/Fenom tokens (extensions/ModxSyntax.js): a badge in text, a card between blocks.
+    // They show the source as text; nothing in them is rendered.
+    .tiptapeditor__token {
+        display: inline-block;
+        max-width: 100%;
+        padding: 0 4px;
+        border: 1px solid #b9cde4;
+        border-radius: var(--tiptapeditor-radius);
+        background: #eef4fb;
+        color: #1d4f86;
+        line-height: 1.35;
+        vertical-align: baseline;
+        white-space: nowrap;
+        cursor: default;
+        user-select: none;
+
+        code,
+        pre {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: inherit;
+            font-family: Consolas, Menlo, monospace;
+            font-size: 0.86em;
+        }
+
+        &.tiptapeditor__token--fenom {
+            border-color: #d6c3e8;
+            background: #f6f0fb;
+            color: #5b2c86;
+        }
+
+        &.ProseMirror-selectednode {
+            outline: 2px solid var(--tiptapeditor-focus);
+            outline-offset: 1px;
+        }
+    }
+
+    .tiptapeditor__token--block {
+        display: block;
+        padding: 4px 8px;
+        border-left-width: 3px;
+        white-space: normal;
+
+        pre {
+            overflow: hidden;
+            max-height: 7.5em;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    }
+
+    // HTML the editor cannot represent (extensions/RawHtml.js): kept byte for byte, shown as
+    // a card with a text-only preview.
+    .tiptapeditor__raw {
+        padding: 6px 10px;
+        border: 1px dashed #a9b4bf;
+        border-radius: var(--tiptapeditor-radius);
+        background: #f6f7f9;
+        color: var(--tiptapeditor-muted);
+        cursor: default;
+        user-select: none;
+
+        &.ProseMirror-selectednode {
+            outline: 2px solid var(--tiptapeditor-focus);
+            outline-offset: 1px;
+        }
+    }
+
+    .tiptapeditor__raw-head {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        font-size: 12px;
+
+        code {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--tiptapeditor-fg);
+            font-family: Consolas, Menlo, monospace;
+        }
+    }
+
+    .tiptapeditor__raw-label {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .tiptapeditor__raw-preview {
+        overflow: hidden;
+        max-height: 4.8em;
+        margin-top: 2px;
+        color: var(--tiptapeditor-fg);
+        white-space: pre-wrap;
+        word-break: break-word;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    // Embedded iframe (extensions/Iframe.js): never loaded in the manager, shown as a card.
+    .tiptapeditor__embed {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 2px 8px;
+        align-items: baseline;
+        box-sizing: border-box;
+        min-width: 220px;
+        max-width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #c5ced8;
+        border-radius: var(--tiptapeditor-radius);
+        background: #f1f4f8;
+        color: var(--tiptapeditor-fg);
+        font-size: 12px;
+        line-height: 1.4;
+        vertical-align: middle;
+        white-space: normal;
+        cursor: default;
+        user-select: none;
+
+        &.ProseMirror-selectednode {
+            outline: 2px solid var(--tiptapeditor-focus);
+            outline-offset: 1px;
+        }
+    }
+
+    .tiptapeditor__embed-label {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--tiptapeditor-muted);
+    }
+
+    .tiptapeditor__embed-src {
+        overflow: hidden;
+        min-width: 0;
+        max-width: 100%;
+        font-family: Consolas, Menlo, monospace;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tiptapeditor__embed-size {
+        color: var(--tiptapeditor-muted);
+    }
+
+    // Figure with caption (extensions/Figure.js).
+    figure {
+        margin: 1em 0;
+    }
+
+    figcaption {
+        margin-top: 4px;
+        color: var(--tiptapeditor-muted);
+        font-size: 0.9em;
+
+        &:empty::before {
+            content: '…';
+        }
+    }
+
+    .tiptapeditor__figure-image {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+
+        img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+    }
+
+    .ProseMirror-selectednode > .tiptapeditor__figure-image,
+    .tiptapeditor__figure-image.ProseMirror-selectednode {
+        outline: 2px solid var(--tiptapeditor-focus);
+    }
+
+    .tiptapeditor__figure-zoom {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        padding: 0 6px;
+        border-radius: var(--tiptapeditor-radius);
+        background: rgb(0 0 0 / 60%);
+        color: #fff;
+        font-size: 14px;
+        line-height: 22px;
+    }
+
+    // Gallery (extensions/Gallery.js): a card with thumbnails.
+    .tiptapeditor__gallery {
+        box-sizing: border-box;
+        margin: 1em 0;
+        padding: 10px 12px;
+        border: 1px solid #c5ced8;
+        border-radius: var(--tiptapeditor-radius);
+        background: #f1f4f8;
+        cursor: default;
+
+        &.ProseMirror-selectednode {
+            outline: 2px solid var(--tiptapeditor-focus);
+        }
+    }
+
+    .tiptapeditor__gallery-label {
+        margin-bottom: 8px;
+        color: var(--tiptapeditor-muted);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .tiptapeditor__gallery-thumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .tiptapeditor__gallery-thumb {
+        width: 72px;
+        height: 72px;
+        border-radius: 3px;
+        background: #fff;
+        object-fit: cover;
+    }
+
+    .tiptapeditor__gallery-more {
+        color: var(--tiptapeditor-muted);
+        font-weight: 600;
+    }
+
+    // Text being completed ("/hea", "[[*pag").
+    .tiptapeditor__suggestion {
+        border-radius: 2px;
+        background: var(--tiptapeditor-active-bg);
+    }
+}

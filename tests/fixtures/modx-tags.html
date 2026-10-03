@@ -1,0 +1,16 @@
+<h2>[[*pagetitle]]</h2>
+<p>[[*introtext]] Site: [[++site_name]], link: <a href="[[~[[*parent]]? &scheme=`full`]]">parent</a>.</p>
+[[*content]]
+[[!pdoResources?
+    &parents=`10`
+    &limit=`10`
+    &tpl=`@INLINE <li><a href="[[+uri]]">[[+pagetitle]]</a></li>`
+]]
+[[getImageList?
+    &tvname=`gallery`
+]]
+[[$chunk]]
+<p>[[%lexicon_key? &namespace=`tiptapeditor`]] and [[+placeholder:default=`none`]] [[-a comment]]</p>
+<p><img src="[[++assets_url]]images/logo.png" alt="[[++site_name]]"></p>
+<ul>[[!pdoMenu? &parents=`0`]]</ul>
+<script>var id = [[*id]];</script>

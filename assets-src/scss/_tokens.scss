@@ -1,0 +1,14 @@
+// Design tokens as CSS custom properties, scoped to the editor root.
+@mixin custom-properties {
+    --tiptapeditor-font: inherit;
+    --tiptapeditor-radius: 4px;
+    --tiptapeditor-border: #d8dde3;
+    --tiptapeditor-bg: #fff;
+    --tiptapeditor-fg: #2b3a48;
+    --tiptapeditor-muted: #6b7a89;
+    --tiptapeditor-accent: #234368;
+    --tiptapeditor-focus: #3697cd;
+    --tiptapeditor-hover: #eef1f4;
+    --tiptapeditor-active-bg: #e1e9f2;
+    --tiptapeditor-toolbar-bg: #f8f9fa;
+}

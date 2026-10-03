@@ -1,0 +1,364 @@
+// Editor dialogs (ui/Dialog.js). Rendered on <body>, everything scoped to .tiptapeditor-dialog.
+@use 'tokens';
+
+.tiptapeditor-dialog {
+    @include tokens.custom-properties;
+
+    position: fixed;
+    inset: 0;
+    // Above a fullscreen editor (8000), below ExtJS windows (9000+) such as the Media Browser.
+    z-index: 8500;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8vh 16px 16px;
+    background: rgba(28, 37, 46, 0.35);
+    font-family: var(--tiptapeditor-font);
+    font-size: 13px;
+    color: var(--tiptapeditor-fg);
+    box-sizing: border-box;
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+}
+
+.tiptapeditor-dialog__window {
+    width: 100%;
+    max-width: 520px;
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: 6px;
+    background: var(--tiptapeditor-bg);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    outline: none;
+}
+
+.tiptapeditor-dialog__title {
+    margin: 0;
+    padding: 14px 18px 4px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--tiptapeditor-fg);
+}
+
+.tiptapeditor-dialog__body {
+    margin: 0;
+    padding: 8px 18px;
+    overflow: auto;
+}
+
+.tiptapeditor-dialog__field {
+    margin: 0 0 10px;
+}
+
+.tiptapeditor-dialog__label {
+    display: block;
+    margin: 0 0 4px;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--tiptapeditor-fg);
+}
+
+.tiptapeditor-dialog__input {
+    display: block;
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    padding: 4px 8px;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    background: #fff;
+    font: inherit;
+    color: inherit;
+
+    &:focus-visible {
+        outline: 2px solid var(--tiptapeditor-focus);
+        outline-offset: 0;
+        border-color: var(--tiptapeditor-focus);
+    }
+}
+
+.tiptapeditor-dialog__hint {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--tiptapeditor-muted);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.tiptapeditor-dialog__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 0;
+
+    .tiptapeditor-dialog__input {
+        width: auto;
+        max-width: 100%;
+        flex: 1 1 160px;
+    }
+}
+
+.tiptapeditor-dialog__search {
+    margin: 8px 0 10px;
+    padding: 8px;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    background: var(--tiptapeditor-toolbar-bg);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.tiptapeditor-dialog__results {
+    max-height: 220px;
+    margin: 6px 0 0;
+    padding: 0;
+    overflow: auto;
+    list-style: none;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.tiptapeditor-dialog__result {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 8px;
+    border-radius: var(--tiptapeditor-radius);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--tiptapeditor-hover);
+    }
+
+    &[aria-selected='true'] {
+        background: var(--tiptapeditor-active-bg);
+        box-shadow: inset 3px 0 0 var(--tiptapeditor-accent);
+    }
+}
+
+.tiptapeditor-dialog__result-title {
+    font-weight: 600;
+}
+
+.tiptapeditor-dialog__result-meta {
+    font-size: 11px;
+    color: var(--tiptapeditor-muted);
+    word-break: break-all;
+}
+
+.tiptapeditor-dialog__error {
+    margin: 4px 0 8px;
+    padding: 6px 8px;
+    border-left: 3px solid #c0392b;
+    background: #fdf1f0;
+    color: #a5281b;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.tiptapeditor-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 18px 14px;
+    border-top: 1px solid var(--tiptapeditor-border);
+}
+
+.tiptapeditor-dialog__button {
+    appearance: none;
+    height: 32px;
+    margin: 0;
+    padding: 0 14px;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    background: #fff;
+    font: inherit;
+    font-weight: 600;
+    color: var(--tiptapeditor-fg);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--tiptapeditor-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--tiptapeditor-focus);
+        outline-offset: 1px;
+    }
+
+    &--primary {
+        border-color: var(--tiptapeditor-accent);
+        background: var(--tiptapeditor-accent);
+        color: #fff;
+
+        &:hover {
+            background: #1a3350;
+        }
+    }
+
+    &--danger {
+        margin-right: auto;
+        color: #a5281b;
+    }
+}
+
+.tiptapeditor-dialog__actions .tiptapeditor-dialog__button--danger + .tiptapeditor-dialog__button {
+    margin-left: 0;
+}
+
+.tiptapeditor-dialog__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0 12px;
+    margin: 0 0 10px;
+
+    .tiptapeditor-dialog__field {
+        flex: 1 1 120px;
+        margin: 0;
+    }
+
+    .tiptapeditor-dialog__button {
+        flex: 0 0 auto;
+    }
+}
+
+.tiptapeditor-dialog__preview {
+    margin: 8px 0 0;
+    padding: 6px;
+    border: 1px dashed var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    text-align: center;
+    background: repeating-conic-gradient(#f3f5f7 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+
+    &[hidden] {
+        display: none;
+    }
+
+    img {
+        display: inline-block;
+        max-width: 100%;
+        max-height: 160px;
+        vertical-align: middle;
+    }
+}
+
+// A checkbox field: box first, label next to it.
+.tiptapeditor-dialog__field--check {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+
+    .tiptapeditor-dialog__label {
+        margin: 0;
+    }
+
+    .tiptapeditor-dialog__input {
+        flex: none;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        padding: 0;
+        accent-color: var(--tiptapeditor-accent);
+        cursor: pointer;
+    }
+
+    .tiptapeditor-dialog__label {
+        cursor: pointer;
+    }
+}
+
+.tiptapeditor-dialog__text {
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.tiptapeditor-dialog__code-text {
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: #f3f5f7;
+    font-family: Consolas, Menlo, monospace;
+    font-size: 12px;
+    word-break: break-word;
+}
+
+// Gallery dialog (images/GalleryDialog.js).
+.tiptapeditor-gallery-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 50vh;
+    margin: 8px 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.tiptapeditor-gallery-list__item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+}
+
+.tiptapeditor-gallery-list__thumb {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: 3px;
+    object-fit: cover;
+    background: #f3f5f7;
+}
+
+.tiptapeditor-gallery-list__fields {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    .tiptapeditor-dialog__input[hidden] {
+        display: none;
+    }
+}
+
+.tiptapeditor-gallery-list__name {
+    overflow: hidden;
+    color: var(--tiptapeditor-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tiptapeditor-gallery-list__actions {
+    display: flex;
+    flex: none;
+    gap: 4px;
+}
+
+.tiptapeditor-dialog__button.tiptapeditor-gallery-list__button {
+    min-width: 30px;
+    padding: 4px 6px;
+}
+

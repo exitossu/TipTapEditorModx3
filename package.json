@@ -1,0 +1,52 @@
+{
+  "name": "tiptapeditor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tiptap 3 rich text editor for MODX Revolution 3",
+  "license": "MIT",
+  "type": "module",
+  "modx": {
+    "release": "alpha17"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "check:tiptap-versions": "node scripts/check-tiptap-versions.js",
+    "test:e2e": "node tests/e2e/registration.mjs && node tests/e2e/editor.mjs && node tests/e2e/media.mjs && node tests/e2e/links.mjs && node tests/e2e/images.mjs && node tests/e2e/tables.mjs && node tests/e2e/syntax.mjs && node tests/e2e/source.mjs && node tests/e2e/config.mjs && node tests/e2e/assist.mjs && node tests/e2e/upload.mjs && node tests/e2e/gallery.mjs",
+    "test": "vitest run",
+    "docs:generate": "php scripts/docs-generate.php",
+    "docs:dev": "npm run -s docs:generate && vitepress dev docs",
+    "docs:build": "npm run -s docs:generate && vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.4",
+    "@tiptap/extension-bubble-menu": "3.31.4",
+    "@tiptap/extension-code": "3.31.4",
+    "@tiptap/extension-floating-menu": "3.31.4",
+    "@tiptap/extension-highlight": "3.31.4",
+    "@tiptap/extension-image": "3.31.4",
+    "@tiptap/extension-subscript": "3.31.4",
+    "@tiptap/extension-superscript": "3.31.4",
+    "@tiptap/extension-table": "3.31.4",
+    "@tiptap/extension-text-align": "3.31.4",
+    "@tiptap/extension-text-style": "3.31.4",
+    "@tiptap/extensions": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "@tiptap/suggestion": "3.31.4"
+  },
+  "devDependencies": {
+    "happy-dom": "20.14.5",
+    "lucide-static": "1.51.0",
+    "playwright": "1.56.1",
+    "sass": "1.105.1",
+    "vite": "8.3.2",
+    "vitepress": "1.6.4",
+    "vitest": "5.0.3"
+  }
+}

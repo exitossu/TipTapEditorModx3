@@ -1,0 +1,18 @@
+<h2>Заголовок</h2>
+
+<p>
+    Текст <strong>жирный</strong>
+    и <a href="[[~12]]">ссылка</a>.
+</p>
+
+[[!pdoResources?
+    &parents=`10`
+    &limit=`5`
+]]
+
+{if $resource.published}
+    <p>{$resource.pagetitle}</p>
+{/if}
+Bare text with [[*pagetitle]] and {$x} at the top level.
+<p>A & B &amp; C &lt;tag&gt; — [[!snippet? &a=`1` &b=`x&y`]] {$a|replace:"&":"and"}</p>
+<p><a href="[[~5? &amp;scheme=`abs`]]">escaped</a> <span class="label">span</span></p>

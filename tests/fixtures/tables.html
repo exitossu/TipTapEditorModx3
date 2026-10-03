@@ -1,0 +1,17 @@
+<table class="table table-striped" id="prices">
+<thead><tr><th>Name</th><th scope="col">Price</th></tr></thead>
+<tbody>
+<tr class="odd"><td>Tea</td><td align="right">10</td></tr>
+<tr><td><p>Coffee</p><p>with milk</p></td><td style="text-align: right;">12</td></tr>
+<tr><td colspan="2">[[+total]]</td></tr>
+</tbody>
+<tfoot><tr><td>Sum</td><td>{$sum}</td></tr></tfoot>
+</table>
+<table>
+<tr><td></td><td>no tbody written</td></tr>
+</table>
+<table>
+{foreach $rows as $row}
+<tr><td>{$row.name}</td></tr>
+{/foreach}
+</table>

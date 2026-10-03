@@ -1,0 +1,239 @@
+@use 'tokens';
+
+// Toolbar, menus and palettes. Scoped under .tiptapeditor; buttons reset only their own styles.
+
+.tiptapeditor__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 0;
+    padding: 4px;
+    border-bottom: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius) var(--tiptapeditor-radius) 0 0;
+    background: var(--tiptapeditor-toolbar-bg);
+}
+
+.tiptapeditor--sticky-toolbar .tiptapeditor__bars {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+// Table toolbar (shown while the cursor is in a table), under the main toolbar.
+.tiptapeditor__toolbar--table {
+    border-radius: 0;
+    background: var(--tiptapeditor-bg);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.tiptapeditor__bars > .tiptapeditor__toolbar + .tiptapeditor__toolbar {
+    border-radius: 0;
+}
+
+.tiptapeditor__group {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 0 4px;
+
+    & + & {
+        border-left: 1px solid var(--tiptapeditor-border);
+    }
+}
+
+.tiptapeditor__button,
+.tiptapeditor__menu-item,
+.tiptapeditor__swatch {
+    appearance: none;
+    margin: 0;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.tiptapeditor__button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: var(--tiptapeditor-radius);
+    background: transparent;
+    color: var(--tiptapeditor-fg);
+    line-height: 1;
+
+    &:hover:not(:disabled) {
+        background: var(--tiptapeditor-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--tiptapeditor-focus);
+        outline-offset: 1px;
+    }
+
+    &[aria-pressed='true'],
+    &[aria-expanded='true'] {
+        background: var(--tiptapeditor-active-bg);
+        color: var(--tiptapeditor-accent);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    &--menu .tiptapeditor__icon + .tiptapeditor__icon {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.tiptapeditor__icon {
+    flex: none;
+    display: block;
+    pointer-events: none;
+}
+
+.tiptapeditor__color-bar {
+    position: absolute;
+    left: 7px;
+    right: 7px;
+    bottom: 3px;
+    height: 3px;
+    border-radius: 1px;
+}
+
+.tiptapeditor__popover {
+    position: absolute;
+    z-index: 20;
+    min-width: 160px;
+    padding: 4px;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    background: var(--tiptapeditor-bg);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.tiptapeditor__menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.tiptapeditor__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: var(--tiptapeditor-radius);
+    background: transparent;
+    text-align: left;
+    white-space: nowrap;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+        background: var(--tiptapeditor-hover);
+        outline: none;
+    }
+
+    &[aria-checked='true'] {
+        color: var(--tiptapeditor-accent);
+        font-weight: 600;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+}
+
+.tiptapeditor__palette {
+    display: grid;
+    grid-template-columns: repeat(6, 24px);
+    gap: 4px;
+    min-width: 0;
+
+    .tiptapeditor__menu-item--clear {
+        grid-column: 1 / -1;
+        justify-content: center;
+    }
+}
+
+.tiptapeditor__swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--tiptapeditor-swatch);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 15%);
+
+    &:hover,
+    &:focus-visible {
+        outline: 2px solid var(--tiptapeditor-focus);
+        outline-offset: 1px;
+    }
+}
+
+// Fullscreen: covers the manager window; the content area scrolls under the toolbar.
+// Above the manager layout, below ExtJS windows (z-index from 9000), so the MODX Media
+// Browser opened from a fullscreen editor shows on top. Dialogs sit in between.
+.tiptapeditor.tiptapeditor--fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+    border-radius: 0;
+
+    .tiptapeditor__toolbar {
+        border-radius: 0;
+    }
+
+    .tiptapeditor__content {
+        flex: 1;
+        max-height: none !important;
+        height: auto !important;
+    }
+
+    .tiptapeditor__editable {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .tiptapeditor__source {
+        flex: 1;
+        height: auto !important;
+        resize: none;
+    }
+}
+
+.tiptapeditor-has-fullscreen,
+.tiptapeditor-has-fullscreen body {
+    overflow: hidden !important;
+}
+
+// Contextual menu over a selected image (images/ImageMenu.js), rendered on <body>.
+.tiptapeditor__image-menu {
+    @include tokens.custom-properties;
+
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--tiptapeditor-border);
+    border-radius: var(--tiptapeditor-radius);
+    background: var(--tiptapeditor-bg);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    z-index: 8100;
+
+    .tiptapeditor__button[hidden] {
+        display: none;
+    }
+}

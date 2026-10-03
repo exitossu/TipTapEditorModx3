@@ -1,0 +1,12 @@
+node_modules/
+/core/components/tiptapeditor/vendor/
+/_build/*.transport.zip
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Documentation site build output
+/docs/.vitepress/dist/
+/docs/.vitepress/cache/

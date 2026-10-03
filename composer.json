@@ -1,0 +1,14 @@
+{
+  "name": "tiptapeditor/tiptapeditor",
+  "description": "Tiptap 3 rich text editor for MODX Revolution 3 (development manifest; the package itself ships no Composer dependencies).",
+  "type": "project",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "TipTapEditor\\": "core/components/tiptapeditor/src/"
+    }
+  }
+}
