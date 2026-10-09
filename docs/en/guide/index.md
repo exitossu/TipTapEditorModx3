@@ -44,7 +44,7 @@ The original textarea stays in the page. It is hidden only after the editor has 
 
 ## Where to go next
 
-- [Install and upgrade](./install): installation, upgrading, moving from TiptapRTE.
+- [Install and upgrade](./install): installation, upgrading, uninstalling.
 - [Editing](./editing): what content managers see and do in the editor.
 - [Toolbar](./toolbar): choosing the buttons.
 - [Images, galleries, files](./media): Media Browser, uploads, captions, galleries, embeds.

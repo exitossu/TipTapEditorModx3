@@ -47,22 +47,6 @@ Install the new version over the old one in **Extras → Installer**.
 If you changed `tiptapeditor.toolbar`, the upgrade keeps your value, so buttons added in a new version (for example `gallery`, `embed` or `file`) do not appear by themselves. Add them to the setting yourself. Compare your value with the default toolbar in [Toolbar](./toolbar#default-toolbar).
 :::
 
-## Moving from TiptapRTE
-
-Up to version 0.1.0-alpha15 the extra was called **TiptapRTE**. In 0.1.0-alpha16 it was renamed to TipTapEditor: namespace, settings (`tiptapeditor.*`), folders, plugin, category and the editor name in `which_editor`. The two packages are separate, so:
-
-1. Write down your `tiptaprte.*` settings (toolbar, profiles, class presets, and so on).
-2. Uninstall the old **TiptapRTE** package in **Extras → Installer**.
-3. Install **TipTapEditor**.
-4. Enter your settings again under the new prefix `tiptapeditor.*`.
-
-Good to know:
-
-- If TiptapRTE is still installed, the installer writes a warning to the log. The old package is not used any more.
-- `which_editor` values that still say `Tiptap RTE` (in system, context, user group or user settings) are switched to `TipTapEditor` automatically on install and upgrade.
-- Galleries saved by TiptapRTE (marked with `data-tiptaprte-gallery`) still open as galleries. When you save such a gallery again, it gets the new attribute `data-tiptapeditor-gallery`.
-- Your resource content does not need any change.
-
 ## Uninstall
 
 Uninstalling in **Extras → Installer**:

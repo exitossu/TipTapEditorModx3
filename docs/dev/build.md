@@ -59,7 +59,7 @@ MODX_CORE_PATH=/path/to/site/core/ php _build/build.php --install  # собра�
 
 - версия пакета берётся из `package.json`: `version` + `modx.release` (например, `0.1.0` + `alpha17`);
 - при обновлении плагин перезаписывается, а значения системных настроек — нет;
-- резолвер установки выставляет `which_editor` и `use_editor` (только при первой установке) и переименовывает старое значение `Tiptap RTE`; резолвер удаления сбрасывает `which_editor` и удаляет плагин, настройки и пространство имён (см. [Установка](../guide/install)).
+- резолвер установки выставляет `which_editor` и `use_editor` (только при первой установке); резолвер удаления сбрасывает `which_editor` и удаляет плагин, настройки и пространство имён (см. [Установка](../guide/install)).
 
 ## Тесты
 
@@ -89,7 +89,7 @@ E2e-тесты меняют `which_editor` и другие системные н
 
 ## Документация
 
-Сайт документации собирается VitePress из `docs/`. Страницы [Системные настройки](../guide/settings) и [История изменений](../changelog) генерируются из исходников пакета (`_build/elements/settings.php`, лексиконы, `core/components/tiptapeditor/docs/changelog.txt`), правьте источники, а не эти страницы.
+Сайт документации собирается VitePress из `docs/`. Страницы [Системные настройки](../guide/settings) и [История изменений](../changelog) генерируются из исходников пакета (`_build/elements/settings.php`, лексиконы, `core/components/tiptapeditor/docs/changelog.txt` и `changelog.ru.txt`), правьте источники, а не эти страницы.
 
 ```bash
 npm run docs:generate   # только сгенерировать страницы
@@ -102,7 +102,7 @@ GitHub Actions (`.github/workflows/docs.yml`) собирает сайт на к�
 ## Выпуск версии
 
 1. Поднимите версию в `package.json` (`version` и `modx.release`) и ту же строку в `TipTapEditor::VERSION` (`core/components/tiptapeditor/src/TipTapEditor.php`), например `0.1.0-alpha18`.
-2. Опишите изменения в `core/components/tiptapeditor/docs/changelog.txt`.
+2. Опишите изменения в `core/components/tiptapeditor/docs/changelog.txt` (английский) и `changelog.ru.txt` (русский), с одинаковым списком версий.
 3. Новые строки интерфейса и настройки — в оба лексикона, `en` и `ru`; новые настройки — в `_build/elements/settings.php`.
 4. Прогоните проверки: `npm run check:tiptap-versions`, `npm test` и e2e на тестовом сайте.
 5. `npm run build`, затем `php _build/build.php`.

@@ -86,13 +86,13 @@ npm run docs:dev        # generate pages and start a local server
 npm run docs:build      # generate pages and build docs/.vitepress/dist
 ```
 
-`npm run docs:generate` (also run by both commands above) writes the System settings and Changelog pages from `_build/elements/settings.php`, the setting lexicons and `core/components/tiptapeditor/docs/changelog.txt`. Do not edit those pages by hand. The GitHub workflow `.github/workflows/docs.yml` builds the site for every push and pull request and publishes it to GitHub Pages from `main`.
+`npm run docs:generate` (also run by both commands above) writes the System settings and Changelog pages from `_build/elements/settings.php`, the setting lexicons and `core/components/tiptapeditor/docs/changelog.txt` / `changelog.ru.txt`. Do not edit those pages by hand. The GitHub workflow `.github/workflows/docs.yml` builds the site for every push and pull request and publishes it to GitHub Pages from `main`.
 
 ## Releasing
 
 1. Set the version in `package.json` (`version` and `modx.release`, for example `0.1.0` and `alpha17`).
 2. Set the same full version in `TipTapEditor::VERSION` (`0.1.0-alpha17`).
-3. Describe the changes in `core/components/tiptapeditor/docs/changelog.txt`.
+3. Describe the changes in `core/components/tiptapeditor/docs/changelog.txt` (English) and `changelog.ru.txt` (Russian), with the same versions in both.
 4. Run `npm run check:tiptap-versions`, `npm test` and `npm run build`. Commit the rebuilt `dist/`.
 5. Run the e2e tests on a test site.
 6. Build the transport package and test the install and the upgrade from the previous version.

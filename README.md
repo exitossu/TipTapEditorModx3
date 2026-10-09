@@ -61,12 +61,8 @@ The package is written to `core/packages/tiptapeditor-<version>.transport.zip`.
   `OnRichTextEditorInit`, `OnRichTextBrowserInit`, `OnManagerPageBeforeRender`) and the
   `tiptapeditor.*` system settings, and sets the system settings `which_editor` to **TipTapEditor**
   and `use_editor` to 1 (the previous values are in the install log). Context and user settings
-  keep their values, except an old "Tiptap RTE" value, which install and upgrade rename.
+  keep their values.
 - **Upgrade** never resets existing system settings, external config or content.
-- **From TiptapRTE (0.1.0-alpha15 and older)**: the extra was renamed to TipTapEditor (namespace,
-  settings `tiptapeditor.*`, folders, plugin). Uninstall the old TiptapRTE package first, then
-  install TipTapEditor and set your settings again under the new prefix. Galleries saved with
-  `data-tiptaprte-gallery` still open as galleries and get `data-gallery` when saved again.
 - **Uninstall** removes files, plugin, settings and namespace. Wherever `which_editor` pointed to TipTapEditor (system, context,
   user group or user settings) it is reset to empty (plain textarea). Resource content and TV values are never modified.
 

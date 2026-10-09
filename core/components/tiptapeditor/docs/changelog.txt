@@ -33,12 +33,11 @@ Changelog for TipTapEditor
   their label in the dialog style instead of looking like a text field.
 
 0.1.0-alpha16
-- Renamed from TiptapRTE to TipTapEditor: namespace and settings tiptapeditor.*, folders
+- The extra is TipTapEditor: namespace and settings tiptapeditor.*, folders
   core|assets/components/tiptapeditor, plugin, category, package and editor name (which_editor
-  value "TipTapEditor"), JS API window.TipTapEditor. Uninstall the old TiptapRTE package first and
-  set the settings again. Galleries saved with data-tiptaprte-gallery still open as galleries.
+  value "TipTapEditor"), JS API window.TipTapEditor.
 - Installation sets the system settings which_editor to TipTapEditor and use_editor to 1
-  (logged; upgrade does not change them). which_editor values "Tiptap RTE" are renamed.
+  (logged; upgrade does not change them).
 - One "Image" button: its dialog takes a file from the Media Browser, uploads one from the
   computer or copies one from a link into upload_path. imageUpload and imageUrl stay available
   for the toolbar setting but are no longer in the default toolbar and slash commands.

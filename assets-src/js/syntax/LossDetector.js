@@ -19,13 +19,13 @@ const EQUIVALENT_TAGS = {
 // Elements whose presence Tiptap guarantees by itself or which are pure wrappers.
 const IGNORED_TAGS = new Set(['html', 'head', 'body', 'tbody']);
 /**
- * Galleries made by the editor (data-gallery, earlier data-tiptapeditor-gallery or
- * data-tiptaprte-gallery on the outer element) are written with their current template, so
+ * Galleries made by the editor (data-gallery, earlier data-tiptapeditor-gallery on the outer
+ * element) are written with their current template, so
  * their markup may change. Only what they hold must survive: the pictures with all their
  * attributes, the links' addresses and the captions (text). The outer element keeps its own
  * attributes except the class and the marker; its tag and class come from the template.
  */
-const GALLERY_MARKERS = ['data-gallery', 'data-tiptapeditor-gallery', 'data-tiptaprte-gallery'];
+const GALLERY_MARKERS = ['data-gallery', 'data-tiptapeditor-gallery'];
 
 function isGallery(el) {
     return el.localName !== 'a' && GALLERY_MARKERS.some((name) => el.hasAttribute(name));

@@ -168,12 +168,12 @@ describe('gallery', () => {
     });
 
     it('galleries with an old marker still open and are written with data-gallery', () => {
-        start('<div class="gallery" data-tiptaprte-gallery="grid"><figure class="gallery__item"><img src="img/1.jpg" alt="One"></figure></div>'
+        start('<div class="gallery" data-tiptapeditor-gallery="grid"><figure class="gallery__item"><img src="img/1.jpg" alt="One"></figure></div>'
             + '<div class="swiper gallery-slider" data-tiptapeditor-gallery="slider"><div class="swiper-wrapper"><div class="swiper-slide"><figure><img src="img/2.jpg" alt="Two"></figure></div></div></div>');
         expect(types()).toEqual(['gallery', 'gallery']);
         expect(instance.editor.state.doc.child(1).attrs.template).toBe('slider');
         const html = serialize(instance.editor);
-        expect(html).not.toMatch(/data-tiptap(rte|editor)-gallery/);
+        expect(html).not.toMatch(/data-tiptapeditor-gallery/);
         expect(html).toContain('<div class="gallery" data-gallery="grid"><figure class="gallery__item"><img src="img/1.jpg" alt="One"></figure></div>');
         expect(html).toContain('<div class="swiper gallery-slider" data-gallery="slider">');
     });

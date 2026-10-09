@@ -2,9 +2,9 @@
 
 /**
  * Writes the generated pages of the documentation site: the changelog (from
- * core/components/tiptapeditor/docs/changelog.txt) and the system settings reference, from
- * _build/elements/settings.php (keys, types, defaults) and the setting lexicons (names and
- * descriptions), so the site never drifts from what the package installs.
+ * core/components/tiptapeditor/docs/changelog.txt and changelog.ru.txt) and the system settings
+ * reference, from _build/elements/settings.php (keys, types, defaults) and the setting lexicons
+ * (names and descriptions), so the site never drifts from what the package installs.
  *
  *   php scripts/docs-generate.php   (npm run docs:generate, also run by docs:build)
  */
@@ -71,22 +71,32 @@ foreach ($pages as $language => $page) {
     echo "Wrote {$page['file']}\n";
 }
 
-// Changelog: "0.1.0-alpha16" lines become headings, list lines stay Markdown.
-$lines = preg_split('/\R/', trim((string)file_get_contents($root . '/core/components/tiptapeditor/docs/changelog.txt')));
-array_shift($lines); // "Changelog for TipTapEditor"
-$body = '';
-foreach ($lines as $line) {
-    if (preg_match('/^\d+\.\d+\.\d+\S*$/', trim($line))) {
-        $body .= "\n## " . trim($line) . "\n\n";
-    } elseif (trim($line) !== '') {
-        $body .= str_replace(['{{', '}}', '<'], ['&#123;&#123;', '&#125;&#125;', '&lt;'], rtrim($line)) . "\n";
-    }
-}
+// Changelog: "0.1.0-alpha16" lines become headings, list lines stay Markdown. English from
+// changelog.txt (shipped in the package), Russian from changelog.ru.txt; both must list the
+// same versions.
 $changelogs = [
-    ['/docs/changelog.md', 'История изменений', "\n::: info\nЖурнал изменений ведётся на английском, как в пакете.\n:::\n"],
-    ['/docs/en/changelog.md', 'Changelog', ''],
+    ['changelog.ru.txt', '/docs/changelog.md', 'История изменений'],
+    ['changelog.txt', '/docs/en/changelog.md', 'Changelog'],
 ];
-foreach ($changelogs as [$file, $title, $note]) {
-    file_put_contents($root . $file, "---\noutline: false\n---\n\n# {$title}\n{$note}{$body}");
+$versionLists = [];
+foreach ($changelogs as [$source, $file, $title]) {
+    $lines = preg_split('/\R/', trim((string)file_get_contents($root . '/core/components/tiptapeditor/docs/' . $source)));
+    array_shift($lines); // "Changelog for TipTapEditor"
+    $body = '';
+    $versions = [];
+    foreach ($lines as $line) {
+        if (preg_match('/^\d+\.\d+\.\d+\S*$/', trim($line))) {
+            $versions[] = trim($line);
+            $body .= "\n## " . trim($line) . "\n\n";
+        } elseif (trim($line) !== '') {
+            $body .= str_replace(['{{', '}}', '<'], ['&#123;&#123;', '&#125;&#125;', '&lt;'], rtrim($line)) . "\n";
+        }
+    }
+    $versionLists[$source] = $versions;
+    file_put_contents($root . $file, "---\noutline: false\n---\n\n# {$title}\n{$body}");
     echo "Wrote {$file}\n";
+}
+if (count(array_unique(array_map('json_encode', $versionLists))) > 1) {
+    fwrite(STDERR, "changelog.txt and changelog.ru.txt list different versions\n");
+    exit(1);
 }

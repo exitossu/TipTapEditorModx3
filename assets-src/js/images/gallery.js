@@ -28,8 +28,8 @@ import { EVENT_HANDLER } from '../utils/attributes.js';
 
 /** Template name on the outer element of a gallery. */
 export const GALLERY_ATTRIBUTE = 'data-gallery';
-/** The same, as written up to 0.1.0-alpha20 (and by TiptapRTE): still read, written as data-gallery. */
-export const LEGACY_GALLERY_ATTRIBUTES = Object.freeze(['data-tiptapeditor-gallery', 'data-tiptaprte-gallery']);
+/** The same, as written up to 0.1.0-alpha20: still read, written as data-gallery. */
+export const LEGACY_GALLERY_ATTRIBUTES = Object.freeze(['data-tiptapeditor-gallery']);
 const MARKERS = [GALLERY_ATTRIBUTE, ...LEGACY_GALLERY_ATTRIBUTES];
 /** Elements that can be a gallery (a lightbox link may use data-gallery for its group). */
 export const GALLERY_SELECTOR = MARKERS.map((name) => `[${name}]:not(a)`).join(', ');

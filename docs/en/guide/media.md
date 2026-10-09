@@ -193,7 +193,7 @@ A gallery with the `grid` template, as saved:
 </div>
 ```
 
-`data-gallery` with the template name marks the gallery, so the editor can open it again in the gallery dialog. Do not remove it. Galleries of older versions with `data-tiptapeditor-gallery` (or `data-tiptaprte-gallery`) open too; the marker becomes `data-gallery` when they are saved.
+`data-gallery` with the template name marks the gallery, so the editor can open it again in the gallery dialog. Do not remove it. Galleries of older versions with `data-tiptapeditor-gallery` open too; the marker becomes `data-gallery` when they are saved.
 
 ### Template files {#gallery-template-files}
 
