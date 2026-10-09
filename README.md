@@ -77,7 +77,7 @@ All settings use the `tiptapeditor.` prefix and have English and Russian descrip
 | Area | Settings |
 |---|---|
 | Interface | `toolbar`, `profiles`, `default_profile`, `content_profile`, `tv_profiles`, `heading_levels`, `bubble_menu`, `floating_menu`, `slash_commands`, `statusbar`, `sticky_toolbar`, `enable_fullscreen`, `min_height`, `max_height`, `default_height`, `autogrow`, `content_css` |
-| Content | `enable_tables`, `enable_images`, `enable_gallery`, `gallery_template`, `gallery_templates`, `gallery_templates_path`, `lightbox`, `lightbox_attribute`, `lightbox_label`, `enable_iframe`, `iframe_allowed_attributes`, `iframe_allowed_hosts`, `paste_as_text`, `image_classes`, `link_classes`, `paragraph_classes`, `table_classes`, `preserve_style_attribute` |
+| Content | `enable_tables`, `enable_images`, `enable_gallery`, `gallery_template`, `gallery_templates_path`, `lightbox`, `lightbox_attribute`, `lightbox_label`, `enable_iframe`, `iframe_allowed_attributes`, `iframe_allowed_hosts`, `paste_as_text`, `image_classes`, `link_classes`, `paragraph_classes`, `table_classes`, `preserve_style_attribute` |
 | MODX integration | `protect_modx_syntax`, `protect_fenom_syntax`, `fenom_tags`, `modx_autocomplete`, `fenom_autocomplete`, `links_across_contexts`, `resource_link_format`, `media_source`, `media_url_mode`, `upload_enabled`, `upload_path` |
 | System | `external_config`, `debug` |
 
@@ -537,8 +537,7 @@ upload (`Image/UploadFolder`, `Media\UploadPath`): `{id}` `{pid}` `{alias}` `{pa
   pictures); `gallery_template` is the default. Each template is a file in `gallery_templates_path`
   (default `core/elements/tiptapeditor/gallery/`, `grid.html`, `slider.html` …): the outer markup
   with `{items}`, a `<!-- item -->` line, then one picture with `{image}` and `{caption}`. Install
-  adds the default files once; updates never overwrite or delete them. More templates also in
-  `gallery_templates` (JSON). A gallery is known by the tag and classes of its outer element (every
+  adds the default files once; updates never overwrite or delete them. A gallery is known by the tag and classes of its outer element (every
   template needs a class there), so the content has no extra attribute; it keeps its markup until
   it is edited in the dialog. Scripts and `on*` attributes in templates are removed.
 

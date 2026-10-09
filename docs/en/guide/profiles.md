@@ -71,7 +71,7 @@ article_body=article
 | `contentCss` | Stylesheets for the editing area (see [Content CSS](#content-css)). |
 | `iframeAllowedHosts`, `iframeAllowedAttributes` | As the settings of the same name. |
 | `modxAutocomplete`, `fenomAutocomplete` | `true` / `false`. |
-| `lightbox`, `lightboxAttribute`, `lightboxLabel`, `galleryTemplate`, `galleryTemplates` | As the settings of the same name (see [Images, galleries, files](./media)). |
+| `lightbox`, `lightboxAttribute`, `lightboxLabel`, `galleryTemplate` | As the settings of the same name (see [Images, galleries, files](./media)). |
 | `extensions`, `editorProps` | See [External config](#external-config). |
 
 Other keys are ignored (and logged).

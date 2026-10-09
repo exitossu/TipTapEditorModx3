@@ -43,7 +43,6 @@ return [
     'image_classes' => ['xtype' => 'textarea', 'value' => '', 'area' => 'tiptapeditor.content'],
     'enable_gallery' => ['xtype' => 'combo-boolean', 'value' => true, 'area' => 'tiptapeditor.content'],
     'gallery_template' => ['xtype' => 'textfield', 'value' => 'grid', 'area' => 'tiptapeditor.content'],
-    'gallery_templates' => ['xtype' => 'textarea', 'value' => '', 'area' => 'tiptapeditor.content'],
     'gallery_templates_path' => ['xtype' => 'textfield', 'value' => '{core_path}elements/tiptapeditor/gallery/', 'area' => 'tiptapeditor.content'],
     'lightbox' => ['xtype' => 'combo-boolean', 'value' => false, 'area' => 'tiptapeditor.content'],
     'lightbox_attribute' => ['xtype' => 'textfield', 'value' => '', 'area' => 'tiptapeditor.content'],

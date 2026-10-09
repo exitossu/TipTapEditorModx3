@@ -19,8 +19,8 @@ import { EVENT_HANDLER } from '../utils/attributes.js';
  *
  * Templates are data: HTML with the placeholders {items} (wrapper) and {image}, {caption}
  * (item). Built in: grid, slider (Swiper markup), images (only the pictures). Files in
- * tiptapeditor.gallery_templates_path (one .html per template, read on the server) and
- * tiptapeditor.gallery_templates (JSON) add templates or replace them by name. Event handler attributes and script-like elements of a
+ * tiptapeditor.gallery_templates_path (one .html per template, read on the server) add templates or
+ * replace them by name. Event handler attributes and script-like elements of a
  * template are removed, so a template cannot run code in the manager or on the site.
  */
 
@@ -83,38 +83,16 @@ function validTemplate(template) {
 }
 
 /**
- * Built-in templates, then the template files (an object from the server), then
- * tiptapeditor.gallery_templates (a JSON object or its text):
+ * Built-in templates, then the template files (an object from the server, Gallery\TemplateFiles):
  * {"cards": {"label": "Cards", "wrapper": "<ul class=\"cards\">{items}</ul>", "item": "<li>{image}{caption}</li>"}}.
- * A later template replaces an earlier one of the same name. Invalid entries are skipped
- * (logged by the caller), so is a template whose outer element has no class or the same tag
- * and classes as another one: the editor could not tell its galleries apart.
+ * A file replaces the built-in template of the same name. Invalid entries are skipped (logged by
+ * the caller), so is a template whose outer element has no class or the same tag and classes as
+ * another one: the editor could not tell its galleries apart.
  * @returns {{ templates: Record<string, {label: string, wrapper: string, item: string, signature: {tag: string, classes: string[]}}>, errors: string[] }}
  */
-export function galleryTemplates(setting, files = null) {
+export function galleryTemplates(files = null) {
     const errors = [];
-    const sources = [BUILTIN_TEMPLATES];
-    if (isPlainObject(files)) {
-        sources.push(files);
-    }
-    let custom = setting;
-    if (typeof custom === 'string') {
-        custom = custom.trim() ? custom : null;
-        if (custom) {
-            try {
-                custom = JSON.parse(custom);
-            } catch {
-                errors.push('gallery_templates is not valid JSON');
-                custom = null;
-            }
-        }
-    }
-    if (custom && !isPlainObject(custom)) {
-        errors.push('gallery_templates must be a JSON object');
-    } else if (custom) {
-        sources.push(custom);
-    }
-
+    const sources = [BUILTIN_TEMPLATES, ...(isPlainObject(files) ? [files] : [])];
     const templates = {};
     for (const source of sources) {
         for (const [name, template] of Object.entries(source)) {
@@ -289,7 +267,7 @@ const IMAGE_KNOWN = new Set(['src', 'alt', 'title', 'width', 'height']);
  * lightbox link, …): such markup stays as an HTML block.
  */
 export function parseGallery(element, { lightboxAttribute: attribute, templates = null }) {
-    const template = galleryTemplateOf(element, templates || galleryTemplates('').templates);
+    const template = galleryTemplateOf(element, templates || galleryTemplates().templates);
     if (!template) {
         return false;
     }

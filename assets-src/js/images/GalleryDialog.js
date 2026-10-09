@@ -31,7 +31,7 @@ function iconButton(dialog, label, text, onClick) {
 /**
  * Gallery dialog: the pictures (from the Media Browser, several at once, or uploaded from the
  * computer into upload_path), their order, alt text and caption, the template
- * (tiptapeditor.gallery_template / gallery_templates) and "open larger" (tiptapeditor.lightbox).
+ * (tiptapeditor.gallery_template, the template files) and "open larger" (tiptapeditor.lightbox).
  *
  * @param {import('@tiptap/core').Editor} editor
  * @param {object} context ({ t, config, message, logger, upload })
@@ -43,7 +43,7 @@ export function openGalleryDialog(editor, context) {
     const { t, config } = context;
     const target = selectedGallery(editor);
     const attrs = target?.node.attrs || {};
-    const { templates } = galleryTemplates(config.galleryTemplates, config.galleryTemplateFiles);
+    const { templates } = galleryTemplates(config.galleryTemplateFiles);
     const items = (attrs.items || []).map((item) => ({ ...item }));
 
     const dialog = new Dialog({ title: t(target ? 'gallery_edit' : 'gallery_insert'), t, className: 'tiptapeditor-dialog--gallery' });

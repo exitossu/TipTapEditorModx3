@@ -176,7 +176,6 @@ class TipTapEditor
             'lightboxAttribute' => (string)$this->getOption('lightbox_attribute', [], ''),
             'lightboxLabel' => (string)$this->getOption('lightbox_label', [], ''),
             'galleryTemplate' => (string)$this->getOption('gallery_template', [], 'grid'),
-            'galleryTemplates' => (string)$this->getOption('gallery_templates', [], ''),
             'galleryTemplateFiles' => (object)$this->getGalleryTemplateFiles(),
             'tableClasses' => (string)$this->getOption('table_classes', [], ''),
             'paragraphClasses' => (string)$this->getOption('paragraph_classes', [], ''),

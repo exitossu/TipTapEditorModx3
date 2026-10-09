@@ -8,6 +8,7 @@
  * ones. The site's template files are restored at the end. Prints "ok"/"FAIL".
  */
 
+use MODX\Revolution\modSystemSetting;
 use MODX\Revolution\modX;
 use TipTapEditor\Gallery\TemplateFiles;
 use TipTapEditor\TipTapEditor;
@@ -67,6 +68,26 @@ $options = [xPDOTransport::PACKAGE_ACTION => xPDOTransport::ACTION_UPGRADE];
 })();
 check('an upgrade keeps an edited template', str_contains((string)file_get_contents($folder . 'grid.html'), 'my-grid'));
 check('an upgrade adds a missing default template', is_file($folder . 'images.html'));
+
+// Upgrade from 0.1.0-alpha20: the JSON setting becomes files, then goes away.
+$old = $modx->newObject(modSystemSetting::class);
+$old->fromArray(['key' => 'tiptapeditor.gallery_templates', 'namespace' => 'tiptapeditor', 'xtype' => 'textarea', 'area' => 'tiptapeditor.content',
+    'value' => json_encode(['cards' => ['label' => 'Карточки', 'wrapper' => '<ul class="cards">{items}</ul>', 'item' => '<li>{image}</li>'],
+        'grid' => ['wrapper' => '<div class="old-grid">{items}</div>', 'item' => '{image}']], JSON_UNESCAPED_UNICODE)], '', true);
+$old->save();
+(function () use ($transport, $options) {
+    return include dirname(__DIR__, 2) . '/_build/resolvers/gallery.php';
+})();
+$cards = TemplateFiles::parse((string)@file_get_contents($folder . 'cards.html'));
+check('templates of the old JSON setting become files', ($cards['label'] ?? '') === 'Карточки' && ($cards['wrapper'] ?? '') === '<ul class="cards">{items}</ul>', json_encode($cards, JSON_UNESCAPED_UNICODE));
+check('an existing file is not overwritten by a moved template', str_contains((string)file_get_contents($folder . 'grid.html'), 'my-grid')
+    && str_contains((string)@file_get_contents($folder . 'grid.from-setting.html'), 'old-grid'));
+check('the old setting value is kept as a file and the setting is removed', is_file($folder . 'gallery_templates-setting.json')
+    && !$modx->getObject(modSystemSetting::class, 'tiptapeditor.gallery_templates'));
+foreach (['cards.html', 'grid.from-setting.html', 'gallery_templates-setting.json'] as $file) {
+    @unlink($folder . $file);
+}
+
 foreach ($backup as $file => $content) {
     file_put_contents($file, $content);
 }

@@ -123,7 +123,7 @@ export function buildExtensions(config, hooks = {}) {
             }),
         );
         if (config.features?.gallery !== false) {
-            const { templates, errors } = galleryTemplates(config.galleryTemplates, config.galleryTemplateFiles);
+            const { templates, errors } = galleryTemplates(config.galleryTemplateFiles);
             errors.forEach((error) => hooks.logger?.debug(error));
             extensions.push(Gallery.configure({
                 templates,

@@ -116,7 +116,7 @@ describe('figure with caption and link', () => {
 });
 
 describe('gallery', () => {
-    const { templates } = galleryTemplates('');
+    const { templates } = galleryTemplates();
     const items = [
         { src: 'img/1.jpg', alt: 'One', caption: 'First' },
         { src: 'img/2.jpg', alt: 'Two & "2"', caption: '' },
@@ -141,16 +141,16 @@ describe('gallery', () => {
         expect(plain.outerHTML).toBe('<div class="gallery gallery--images"><img src="img/1.jpg" alt="One"><img src="img/2.jpg" alt="Two &amp; &quot;2&quot;"></div>');
     });
 
-    it('own templates from JSON; scripts and event handlers are removed, broken ones skipped', () => {
-        const { templates: own, errors } = galleryTemplates(JSON.stringify({
+    it('own templates from files; scripts and event handlers are removed, broken ones skipped', () => {
+        const { templates: own, errors } = galleryTemplates({
             cards: { label: 'Cards', wrapper: '<ul class="cards" onclick="x()">{items}<script>alert(1)</script></ul>', item: '<li onmouseover="y()">{image}{caption}</li>' },
             broken: { wrapper: '<div></div>', item: '{image}' },
-        }));
+        });
         expect(Object.keys(own)).toEqual(['grid', 'slider', 'images', 'cards']);
         expect(errors).toHaveLength(1);
         const el = renderGallery(document, { template: 'cards', items: items.slice(0, 1), lightbox: false }, { templates: own });
         expect(el.outerHTML).toBe('<ul class="cards"><li><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></li></ul>');
-        expect(galleryTemplates('{oops').errors).toEqual(['gallery_templates is not valid JSON']);
+        expect(galleryTemplates('not an object')).toEqual({ templates, errors: [] });
     });
 
     it('opens a saved gallery as one block and saves it unchanged', () => {
@@ -194,10 +194,11 @@ describe('gallery', () => {
     });
 
     it('templates from files replace built-in ones; each needs its own class on the outer element', () => {
-        const { templates: own, errors } = galleryTemplates(JSON.stringify({
+        const { templates: own, errors } = galleryTemplates({
+            slider: { label: 'Мой слайдер', wrapper: '<section class="my-slider">{items}</section>', item: '<div class="slide">{image}</div>' },
             plain: { wrapper: '<div>{items}</div>', item: '{image}' },
             twin: { wrapper: '<div class="gallery">{items}</div>', item: '<p>{image}</p>' },
-        }), { slider: { label: 'Мой слайдер', wrapper: '<section class="my-slider">{items}</section>', item: '<div class="slide">{image}</div>' } });
+        });
         expect(Object.keys(own)).toEqual(['grid', 'slider', 'images']);
         expect(own.slider.label).toBe('Мой слайдер');
         expect(errors).toEqual([

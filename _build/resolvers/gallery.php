@@ -7,6 +7,12 @@
  * are copied there only when a file of that name is not there yet. Files in the folder are never
  * overwritten or deleted, also not on uninstall: they are the site's own templates.
  *
+ * upgrade from 0.1.0-alpha20 and older: templates of the removed system setting
+ * tiptapeditor.gallery_templates (JSON) are moved into the folder first, one <name>.html each, so
+ * they keep working and win over the default files. A name that already has a file there is saved
+ * as <name>.from-setting.html instead (not loaded, nothing overwritten). The setting's whole value
+ * is kept in gallery_templates-setting.json in the folder, then the setting is removed.
+ *
  * @var xPDOTransport $transport
  * @var array $options
  */
@@ -44,6 +50,34 @@ if (!is_dir($folder) && !@mkdir($folder, 0755, true) && !is_dir($folder)) {
 
     return true;
 }
+$old = $modx->getObject(modSystemSetting::class, 'tiptapeditor.gallery_templates');
+if ($old) {
+    $json = trim((string)$old->get('value'));
+    $moved = [];
+    if ($json !== '') {
+        file_put_contents($folder . 'gallery_templates-setting.json', $json . "\n");
+        $templates = json_decode($json, true);
+        foreach (is_array($templates) ? $templates : [] as $name => $template) {
+            if (!is_string($name) || !preg_match('/^[a-z][a-z0-9_-]*$/i', $name) || !is_array($template)
+                || !is_string($template['wrapper'] ?? null) || !is_string($template['item'] ?? null)) {
+                continue;
+            }
+            $label = trim(str_replace('--', '-', (string)($template['label'] ?? '')));
+            $file = $folder . $name . (file_exists($folder . $name . '.html') ? '.from-setting.html' : '.html');
+            $html = ($label !== '' ? "<!-- label: {$label} -->\n" : '')
+                . "<!-- Moved from the system setting tiptapeditor.gallery_templates. -->\n"
+                . $template['wrapper'] . "\n<!-- item -->\n" . $template['item'] . "\n";
+            if (!file_exists($file) && file_put_contents($file, $html) !== false) {
+                $moved[] = basename($file);
+            }
+        }
+    }
+    $old->remove();
+    $modx->log(xPDO::LOG_LEVEL_INFO, 'TipTapEditor: the setting tiptapeditor.gallery_templates was removed'
+        . ($moved ? '; its templates are now files in ' . $value . ': ' . implode(', ', $moved) : '')
+        . ($json !== '' ? '; its value is kept in gallery_templates-setting.json there' : '') . '.');
+}
+
 $added = [];
 foreach (glob($defaults . '*.html') ?: [] as $file) {
     $target = $folder . basename($file);

@@ -16,7 +16,7 @@ class SettingParser
         'tableClasses', 'paragraphClasses', 'imageAlignClasses', 'resourceLinkFormat', 'contentCss',
         'preserveStyleAttribute', 'extensions', 'editorProps', 'bubbleMenu', 'floatingMenu', 'slashCommands',
         'statusbar', 'pasteAsText', 'iframeAllowedAttributes', 'iframeAllowedHosts', 'modxAutocomplete', 'fenomAutocomplete',
-        'lightbox', 'lightboxAttribute', 'lightboxLabel', 'galleryTemplate', 'galleryTemplates',
+        'lightbox', 'lightboxAttribute', 'lightboxLabel', 'galleryTemplate',
     ];
 
     /** @var string[] */

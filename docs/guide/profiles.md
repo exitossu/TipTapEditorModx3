@@ -75,7 +75,7 @@ TV указывается по имени или как `tv<ID>` (`tv12`).
 | `iframeAllowedAttributes`, `iframeAllowedHosts` | Правила для iframe | `iframe_allowed_*` |
 | `modxAutocomplete`, `fenomAutocomplete` | Подсказки тегов | `*_autocomplete` |
 | `lightbox`, `lightboxAttribute`, `lightboxLabel` | «Увеличение по клику» | `lightbox*` |
-| `galleryTemplate`, `galleryTemplates` | Шаблоны галерей | `gallery_template*` |
+| `galleryTemplate` | Шаблон новых галерей | `gallery_template` |
 | `extensions` | Выключить или настроить расширения по имени (см. ниже) | — |
 | `editorProps` | Атрибуты области редактирования (см. ниже) | — |
 

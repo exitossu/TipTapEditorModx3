@@ -5,7 +5,11 @@ Changelog for TipTapEditor
   tiptapeditor.gallery_templates_path (default {core_path}elements/tiptapeditor/gallery/), the
   outer markup, a <!-- item --> line and the markup of one picture. A new file is a new template.
   Installation adds grid.html, slider.html and images.html once; updates and uninstall never
-  overwrite or delete files there. tiptapeditor.gallery_templates (JSON) still works.
+  overwrite or delete files there.
+- The setting tiptapeditor.gallery_templates (JSON) and the profile key galleryTemplates are gone:
+  templates are files only. On upgrade the templates of the setting are moved into files of the
+  folder (an existing file is not overwritten), its value is kept in
+  gallery_templates-setting.json there, and the setting is removed.
 - Galleries no longer carry data-tiptapeditor-gallery: the editor knows a gallery by the tag and
   classes of its outer element, so every template needs a class there. A gallery keeps its markup
   until it is edited in the gallery dialog. Galleries with the old attribute still open; the

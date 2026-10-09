@@ -57,10 +57,9 @@ export const defaults = Object.freeze({
     lightbox: false,
     lightboxAttribute: '',
     lightboxLabel: '',
-    // Galleries: the template for new galleries and more templates (JSON, images/gallery.js).
+    // Galleries: the template for new galleries (images/gallery.js) and the templates from the
+    // files of tiptapeditor.gallery_templates_path, read on the server.
     galleryTemplate: 'grid',
-    galleryTemplates: '',
-    // Templates from the files of tiptapeditor.gallery_templates_path, read on the server.
     galleryTemplateFiles: {},
     // Tables: class presets (tiptapeditor.table_classes) offered in the table dialog.
     tableClasses: '',
@@ -99,7 +98,7 @@ export const CONFIG_KEYS = Object.freeze([
     'tableClasses', 'paragraphClasses', 'imageAlignClasses', 'resourceLinkFormat', 'contentCss',
     'preserveStyleAttribute', 'extensions', 'editorProps', 'bubbleMenu', 'floatingMenu', 'slashCommands',
     'statusbar', 'pasteAsText', 'iframeAllowedAttributes', 'iframeAllowedHosts', 'modxAutocomplete', 'fenomAutocomplete',
-    'lightbox', 'lightboxAttribute', 'lightboxLabel', 'galleryTemplate', 'galleryTemplates',
+    'lightbox', 'lightboxAttribute', 'lightboxLabel', 'galleryTemplate',
 ]);
 
 const SAFE_EDITOR_ATTRIBUTE = /^(spellcheck|lang|dir|class|autocorrect|autocapitalize|(data|aria)-[a-z0-9-]+)$/;

@@ -216,26 +216,6 @@ Every template is a file you can edit: one `.html` file per template in the fold
 
 Changing a template does not touch galleries already in the content: they keep their markup until they are edited in the gallery dialog.
 
-### Templates in a setting
-
-Templates can also be set in `tiptapeditor.gallery_templates` as a JSON object (they replace files of the same name). Each template has:
-
-- `label`: the name shown in the dialog;
-- `wrapper`: the outer HTML with `{items}` exactly once;
-- `item`: the HTML for one picture with `{image}` exactly once and, optionally, `{caption}` once. `{image}` is the `<img>` (with its link when "open larger" is on); `{caption}` is a `<figcaption>` with the caption, or nothing.
-
-```json
-{
-    "cards": {
-        "label": "Cards",
-        "wrapper": "<ul class=\"cards\">{items}</ul>",
-        "item": "<li class=\"cards__item\"><figure>{image}{caption}</figure></li>"
-    }
-}
-```
-
-Then set `tiptapeditor.gallery_template` to `cards` if new galleries should use it. Invalid templates are skipped; turn on `tiptapeditor.debug` to see why in the browser console. Scripts, `<style>`, form elements, `on*` attributes and `javascript:` addresses are removed from templates, so a template cannot run code in the manager or on the site.
-
 ## Files
 
 **Link to a file** (`file`) opens the Media Browser without a file type filter. The selected text becomes a link to the chosen file. If no text is selected, the file name is inserted as the link text. In the link dialog, **File…** does the same.
