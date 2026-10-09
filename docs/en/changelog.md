@@ -15,10 +15,11 @@ outline: false
   templates are files only. On upgrade the templates of the setting are moved into files of the
   folder (an existing file is not overwritten), its value is kept in
   gallery_templates-setting.json there, and the setting is removed.
-- Galleries no longer carry data-tiptapeditor-gallery: the editor knows a gallery by the tag and
-  classes of its outer element, so every template needs a class there. A gallery keeps its markup
-  until it is edited in the gallery dialog. Galleries with the old attribute still open; the
-  attribute is dropped when they are edited.
+- The gallery marker is now data-gallery="&lt;template>" instead of data-tiptapeditor-gallery
+  (galleries with the old attribute still open and get data-gallery when saved).
+- A changed template applies to galleries already in the content: opening a resource rebuilds its
+  galleries with the current templates, and saving the resource stores them. Pictures, links,
+  captions and the outer element's own attributes are kept.
 
 ## 0.1.0-alpha19
 

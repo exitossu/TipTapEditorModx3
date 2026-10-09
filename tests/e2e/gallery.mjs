@@ -1,6 +1,7 @@
 // Figures with captions, "open larger" links and galleries in a real MODX 3 manager.
 //   M=/path/to/site MODX_URL=... MODX_USER=... MODX_PASS=... node tests/e2e/gallery.mjs
 import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -108,11 +109,11 @@ await dialog.locator('.tiptapeditor-dialog__button--primary').click();
 check('gallery card shows in the editor', /2 images/.test(await page.locator(`${root} .tiptapeditor__gallery-label`).textContent()));
 await save();
 content = db(resources.gallery).content;
-check('a new gallery has no template marker', !/data-tiptap(editor|rte)-gallery/.test(content), content);
+check('a new gallery carries data-gallery with its template', /<div class="swiper gallery-slider" data-gallery="slider">/.test(content), content);
 content = compact(content);
 const group = /data-fancybox="(gallery-[a-z0-9]+)"/.exec(content)?.[1] || '';
 check('gallery saved with the slider template, order, captions and one lightbox group',
-    content === '<p>Gallery below.</p><div class="swiper gallery-slider"><div class="swiper-wrapper">'
+    content === '<p>Gallery below.</p><div class="swiper gallery-slider" data-gallery="slider"><div class="swiper-wrapper">'
     + `<div class="swiper-slide"><figure><a href="assets/e2e/img/pic2.png" data-fancybox="${group}" aria-label="Open image:"><img src="assets/e2e/img/pic2.png" alt=""></a></figure></div>`
     + `<div class="swiper-slide"><figure><a href="assets/e2e/img/pic.png" data-fancybox="${group}" aria-label="Open image: First"><img src="assets/e2e/img/pic.png" alt="First"></a><figcaption>First caption</figcaption></figure></div>`
     + '</div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div>', content);
@@ -127,9 +128,24 @@ await field('Open larger on click').uncheck();
 await dialog.locator('.tiptapeditor-dialog__button--primary').click();
 await save();
 content = compact(db(resources.gallery).content);
-check('template switched to grid without links', content === '<p>Gallery below.</p><div class="gallery">'
+check('template switched to grid without links', content === '<p>Gallery below.</p><div class="gallery" data-gallery="grid">'
     + '<figure class="gallery__item"><img src="assets/e2e/img/pic2.png" alt=""></figure>'
     + '<figure class="gallery__item"><img src="assets/e2e/img/pic.png" alt="First"><figcaption>First caption</figcaption></figure></div>', content);
+// 4. The grid template file is changed: the saved gallery follows when the resource is saved.
+const gridFile = `${process.env.M}/core/elements/tiptapeditor/gallery/grid.html`;
+const gridBefore = readFileSync(gridFile, 'utf8');
+writeFileSync(gridFile, '<section class="photos">{items}</section>\n<!-- item -->\n<div class="photo">{image}{caption}</div>\n');
+try {
+    await open(resources.gallery);
+    check('a gallery opens as a gallery after its template changed', (await types()).includes('gallery'));
+    await save();
+    content = compact(db(resources.gallery).content);
+    check('saving the resource writes the gallery with the changed template', content === '<p>Gallery below.</p><section class="photos" data-gallery="grid">'
+        + '<div class="photo"><img src="assets/e2e/img/pic2.png" alt=""></div>'
+        + '<div class="photo"><img src="assets/e2e/img/pic.png" alt="First"><figcaption>First caption</figcaption></div></section>', content);
+} finally {
+    writeFileSync(gridFile, gridBefore);
+}
 check('no gallery image is loaded from the manager directory', !errors.some((e) => /404/.test(e)));
 
 check('no page errors', errors.length === 0, errors.join('; '));

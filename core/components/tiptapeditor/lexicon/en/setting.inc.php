@@ -104,6 +104,6 @@ $_lang['setting_tiptapeditor.gallery_templates_path_desc'] = 'Folder with galler
 $_lang['setting_tiptapeditor.lightbox'] = 'Open images larger on click';
 $_lang['setting_tiptapeditor.lightbox_desc'] = 'New images and galleries get a link to the image around the picture (<figure><a href="…"><img></a></figure>) for a lightbox script on the site. Can be switched per image and gallery in the dialog.';
 $_lang['setting_tiptapeditor.lightbox_attribute'] = 'Lightbox attribute';
-$_lang['setting_tiptapeditor.lightbox_attribute_desc'] = 'Attribute your lightbox script looks for, e.g. data-fancybox (Fancybox), data-lightbox, data-gallery. A single image gets it without a value, a gallery with its group name (data-fancybox="gallery-3fa9c1"). Empty: a plain link.';
+$_lang['setting_tiptapeditor.lightbox_attribute_desc'] = 'Attribute your lightbox script looks for, e.g. data-fancybox (Fancybox), data-lightbox. A single image gets it without a value, a gallery with its group name (data-fancybox="gallery-3fa9c1"). Empty: a plain link.';
 $_lang['setting_tiptapeditor.lightbox_label'] = 'Lightbox link label';
 $_lang['setting_tiptapeditor.lightbox_label_desc'] = 'aria-label of the link, {alt} = the alt text or caption. Empty: "Open image: {alt}" in the manager language.';

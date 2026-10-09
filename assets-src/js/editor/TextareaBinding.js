@@ -43,6 +43,18 @@ export class TextareaBinding {
         return true;
     }
 
+    /**
+     * Writes the field now although nothing was edited (galleries whose template changed): the
+     * next save of the resource stores the new markup. The resource is not marked as changed.
+     */
+    refresh() {
+        if (this.editor.isDestroyed) {
+            return;
+        }
+        this.changed = true;
+        this.textarea.value = serialize(this.editor);
+    }
+
     /** Synchronous write of pending changes. */
     flush() {
         this.write.cancel();

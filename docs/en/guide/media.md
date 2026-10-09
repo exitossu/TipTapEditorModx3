@@ -141,7 +141,7 @@ You can edit the caption in the dialog or directly in the text. Existing figures
 | Setting | Meaning |
 |---|---|
 | `tiptapeditor.lightbox` | **Open larger on click** is ticked for new images and galleries. You can still change it per image and per gallery. Default: off. |
-| `tiptapeditor.lightbox_attribute` | The attribute your lightbox script looks for, for example `data-fancybox`, `data-lightbox` or `data-gallery`. Empty: a plain link. |
+| `tiptapeditor.lightbox_attribute` | The attribute your lightbox script looks for, for example `data-fancybox` or `data-lightbox`. Empty: a plain link. |
 | `tiptapeditor.lightbox_label` | The `aria-label` of the link; `{alt}` is replaced with the alt text or the caption. Empty: "Open image: {alt}" in the manager language. |
 
 With `lightbox_attribute` set to `data-fancybox`, a single image gets the attribute with an empty value:
@@ -185,7 +185,7 @@ In the editor a gallery is a card with thumbnails. Double click it, or press Ent
 A gallery with the `grid` template, as saved:
 
 ```html
-<div class="gallery">
+<div class="gallery" data-gallery="grid">
     <figure class="gallery__item">
         <a href="img/1.jpg" data-fancybox="gallery-3fa9c1" aria-label="Open image: Sea"><img src="img/1.jpg" alt="Sea"></a>
         <figcaption>Sea</figcaption>
@@ -193,7 +193,7 @@ A gallery with the `grid` template, as saved:
 </div>
 ```
 
-The editor knows a gallery by its outer element: `div.gallery` is a `grid` gallery, `div.gallery.gallery--images` an `images` one, `div.swiper.gallery-slider` a slider. The content carries no extra attribute. A gallery keeps its markup exactly as it is until you change it in the gallery dialog; only then is it written with the current template. Galleries saved by older versions with `data-tiptapeditor-gallery` (or `data-tiptaprte-gallery`) still open as galleries, and the attribute is dropped when they are edited.
+`data-gallery` with the template name marks the gallery, so the editor can open it again in the gallery dialog. Do not remove it. Galleries of older versions with `data-tiptapeditor-gallery` (or `data-tiptaprte-gallery`) open too; the marker becomes `data-gallery` when they are saved.
 
 ### Template files {#gallery-template-files}
 
@@ -209,12 +209,11 @@ Every template is a file you can edit: one `.html` file per template in the fold
 - Before `<!-- item -->`: the outer element of the gallery, with `{items}` exactly once.
 - After `<!-- item -->`: one picture, with `{image}` exactly once and, optionally, `{caption}` once. `{image}` is the `<img>` (with its link when "open larger" is on); `{caption}` is a `<figcaption>` with the caption, or nothing. Without `{caption}` the caption field is hidden in the dialog.
 - `<!-- label: … -->` is the name in the dialog (optional; without it the built-in names keep their translated label, others show the file name). Other comments are notes and are left out.
-- **The outer element needs a class of its own** (`cards` above): that is how the editor knows the gallery. Two templates with the same outer tag and classes are not allowed.
 - A new file is a new template: save `cards.html` and it appears in the **Template** list. A file named like a built-in template replaces it.
 
 **Updates never overwrite these files.** The folder is outside the component on purpose: installation adds the default templates only when a file of that name is missing, and an upgrade or uninstall never changes or deletes anything there. The component folder `core/components/tiptapeditor/elements/gallery/` holds the original templates for reference; it is replaced on every update, so do not edit it.
 
-Changing a template does not touch galleries already in the content: they keep their markup until they are edited in the gallery dialog.
+**A changed template applies to galleries already in the content.** When a resource is opened, the editor rebuilds its galleries with the current templates, and saving the resource stores them in the new form. Pictures, links, captions and the outer element's own attributes (`id`, `style`) are kept; the outer tag and class come from the template.
 
 ## Files
 

@@ -1,6 +1,6 @@
 import { Node } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
-import { gallerySelector, parseGallery, renderGallery } from '../images/gallery.js';
+import { GALLERY_SELECTOR, parseGallery, renderGallery } from '../images/gallery.js';
 import { previewUrl } from '../modx/MediaBrowser.js';
 import { createElement } from '../utils/dom.js';
 
@@ -10,12 +10,32 @@ let inert = null;
 /**
  * Image gallery as one block (images/gallery.js has the markup and templates).
  *
- * An element with the outer tag and classes of a gallery template (div.gallery, div.swiper.gallery-slider
- * …) becomes this node when everything in it fits a gallery (images, the lightbox link, plain
- * captions); anything else stays what it was. In the manager it is a card with thumbnails; double
+ * Only galleries made by the editor (data-gallery with the template name on the outer element)
+ * become this node; anything else stays what it was. In the manager it is a card with thumbnails; double
  * click or Enter opens the gallery dialog. Unchanged galleries are saved as they were (the
  * field is only rewritten when the document changes).
  */
+/**
+ * Do galleries of the document differ from what their current template writes (the template
+ * file was changed since they were saved)? Then the field is written again, so saving the
+ * resource brings them up to date.
+ */
+export function hasOutdatedGalleries(editor) {
+    const options = editor.extensionManager.extensions.find((extension) => extension.name === 'gallery')?.options;
+    if (!options) {
+        return false;
+    }
+    inert = inert || document.implementation.createHTMLDocument('');
+    let outdated = false;
+    editor.state.doc.descendants((node) => {
+        if (!outdated && node.type.name === 'gallery' && node.attrs.source) {
+            outdated = renderGallery(inert, node.attrs, options).outerHTML !== node.attrs.source;
+        }
+        return !outdated;
+    });
+    return outdated;
+}
+
 export const Gallery = Node.create({
     name: 'gallery',
     group: 'block',
@@ -41,13 +61,14 @@ export const Gallery = Node.create({
             lightbox: { default: false, rendered: false },
             group: { default: null, rendered: false },
             wrapper: { default: null, rendered: false },
+            // The markup as read (Gallery.js only compares it with the current template).
             source: { default: null, rendered: false },
         };
     },
 
     parseHTML() {
         return [{
-            tag: gallerySelector(this.options.templates),
+            tag: GALLERY_SELECTOR,
             priority: 70,
             getAttrs: (element) => parseGallery(element, { lightboxAttribute: this.options.lightboxAttribute, templates: this.options.templates }),
         }];

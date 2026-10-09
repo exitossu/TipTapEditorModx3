@@ -125,7 +125,7 @@ describe('gallery', () => {
     it('renders the grid template with the lightbox group and reads it back', () => {
         const el = renderGallery(document, { template: 'grid', items, lightbox: true, group: 'gallery-abc' },
             { templates, lightboxAttribute: 'data-fancybox', lightboxLabel: 'Open: {alt}' });
-        expect(el.outerHTML).toBe('<div class="gallery">'
+        expect(el.outerHTML).toBe('<div class="gallery" data-gallery="grid">'
             + '<figure class="gallery__item"><a href="img/1.jpg" data-fancybox="gallery-abc" aria-label="Open: One"><img src="img/1.jpg" alt="One"></a><figcaption>First</figcaption></figure>'
             + '<figure class="gallery__item"><a href="img/2.jpg" data-fancybox="gallery-abc" aria-label="Open: Two &amp; &quot;2&quot;"><img src="img/2.jpg" alt="Two &amp; &quot;2&quot;"></a></figure>'
             + '</div>');
@@ -136,82 +136,68 @@ describe('gallery', () => {
 
     it('slider and images templates', () => {
         const slider = renderGallery(document, { template: 'slider', items, lightbox: false }, { templates });
-        expect(slider.outerHTML).toContain('<div class="swiper gallery-slider"><div class="swiper-wrapper"><div class="swiper-slide"><figure><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></figure></div>');
+        expect(slider.outerHTML).toContain('<div class="swiper gallery-slider" data-gallery="slider"><div class="swiper-wrapper"><div class="swiper-slide"><figure><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></figure></div>');
         const plain = renderGallery(document, { template: 'images', items, lightbox: false }, { templates });
-        expect(plain.outerHTML).toBe('<div class="gallery gallery--images"><img src="img/1.jpg" alt="One"><img src="img/2.jpg" alt="Two &amp; &quot;2&quot;"></div>');
+        expect(plain.outerHTML).toBe('<div class="gallery gallery--images" data-gallery="images"><img src="img/1.jpg" alt="One"><img src="img/2.jpg" alt="Two &amp; &quot;2&quot;"></div>');
     });
 
     it('own templates from files; scripts and event handlers are removed, broken ones skipped', () => {
         const { templates: own, errors } = galleryTemplates({
             cards: { label: 'Cards', wrapper: '<ul class="cards" onclick="x()">{items}<script>alert(1)</script></ul>', item: '<li onmouseover="y()">{image}{caption}</li>' },
+            plain: { wrapper: '<div>{items}</div>', item: '{image}' },
             broken: { wrapper: '<div></div>', item: '{image}' },
         });
-        expect(Object.keys(own)).toEqual(['grid', 'slider', 'images', 'cards']);
+        expect(Object.keys(own)).toEqual(['grid', 'slider', 'images', 'cards', 'plain']);
         expect(errors).toHaveLength(1);
         const el = renderGallery(document, { template: 'cards', items: items.slice(0, 1), lightbox: false }, { templates: own });
-        expect(el.outerHTML).toBe('<ul class="cards"><li><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></li></ul>');
+        expect(el.outerHTML).toBe('<ul class="cards" data-gallery="cards"><li><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></li></ul>');
+        // A template needs no class: data-gallery names it.
+        const bare = renderGallery(document, { template: 'plain', items: items.slice(0, 1), lightbox: false }, { templates: own });
+        expect(bare.outerHTML).toBe('<div data-gallery="plain"><img src="img/1.jpg" alt="One"></div>');
+        expect(parseGallery(bare, { templates: own })).toMatchObject({ template: 'plain' });
         expect(galleryTemplates('not an object')).toEqual({ templates, errors: [] });
     });
 
     it('opens a saved gallery as one block and saves it unchanged', () => {
-        const html = '<p>Text</p><div class="gallery" id="g1"><figure class="gallery__item"><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></figure></div>';
+        const html = '<p>Text</p><div class="gallery" data-gallery="grid" id="g1"><figure class="gallery__item"><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></figure></div>';
         start(html);
         expect(types()).toEqual(['paragraph', 'text', 'gallery']);
         expect(instance.root.querySelector('.tiptapeditor__gallery-label').textContent).toContain('1 images');
         expect(serialize(instance.editor)).toBe(html);
+        expect(document.getElementById('ta').value).toBe(html);
     });
 
-    it('galleries with the old template marker still open; the marker is not written again', () => {
+    it('galleries with an old marker still open and are written with data-gallery', () => {
         start('<div class="gallery" data-tiptaprte-gallery="grid"><figure class="gallery__item"><img src="img/1.jpg" alt="One"></figure></div>'
             + '<div class="swiper gallery-slider" data-tiptapeditor-gallery="slider"><div class="swiper-wrapper"><div class="swiper-slide"><figure><img src="img/2.jpg" alt="Two"></figure></div></div></div>');
         expect(types()).toEqual(['gallery', 'gallery']);
         expect(instance.editor.state.doc.child(1).attrs.template).toBe('slider');
         const html = serialize(instance.editor);
-        expect(html).not.toContain('data-tiptaprte-gallery');
-        expect(html).not.toContain('data-tiptapeditor-gallery');
-        expect(html).toContain('<div class="gallery"><figure class="gallery__item"><img src="img/1.jpg" alt="One"></figure></div>');
+        expect(html).not.toMatch(/data-tiptap(rte|editor)-gallery/);
+        expect(html).toContain('<div class="gallery" data-gallery="grid"><figure class="gallery__item"><img src="img/1.jpg" alt="One"></figure></div>');
+        expect(html).toContain('<div class="swiper gallery-slider" data-gallery="slider">');
     });
 
-    it('a gallery is known by the outer element of its template, the most specific one wins', () => {
-        const images = '<div class="gallery gallery--images"><img src="img/1.jpg" alt="One"><img src="img/2.jpg" alt="Two"></div>';
-        start(`<p>Text</p>${images}`);
-        expect(types()).toEqual(['paragraph', 'text', 'gallery']);
-        expect(instance.editor.state.doc.child(1).attrs.template).toBe('images');
-        expect(serialize(instance.editor)).toBe(`<p>Text</p>${images}`);
-        // Anything else with such a class stays as it was.
-        start('<div class="gallery"><p>Some text</p><img src="a.jpg"></div><div class="other"><img src="b.jpg"></div>');
+    it('only marked elements are galleries', () => {
+        const html = '<div class="gallery"><img src="a.jpg" alt="A"></div><p><a href="b.jpg" data-gallery="gallery-x"><img src="b.jpg" alt="B"></a></p>';
+        start(html);
         expect(types()).not.toContain('gallery');
+        expect(serialize(instance.editor)).toBe(html);
     });
 
-    it('a gallery keeps its markup until it is edited in the dialog', () => {
-        const gallery = '<div class="gallery"><img src="a.jpg" alt="A"></div>';
-        start(`${gallery}<p>x</p>`);
-        expect(types()).toEqual(['gallery', 'paragraph', 'text']);
-        instance.editor.chain().setTextSelection(3).insertContent('y').run();
-        expect(serialize(instance.editor)).toBe(`${gallery}<p>xy</p>`);
-        instance.editor.chain().setNodeSelection(0).updateAttributes('gallery', { source: null }).run();
-        expect(serialize(instance.editor)).toBe('<div class="gallery"><figure class="gallery__item"><img src="a.jpg" alt="A"></figure></div><p>xy</p>');
-    });
-
-    it('templates from files replace built-in ones; each needs its own class on the outer element', () => {
-        const { templates: own, errors } = galleryTemplates({
-            slider: { label: 'Мой слайдер', wrapper: '<section class="my-slider">{items}</section>', item: '<div class="slide">{image}</div>' },
-            plain: { wrapper: '<div>{items}</div>', item: '{image}' },
-            twin: { wrapper: '<div class="gallery">{items}</div>', item: '<p>{image}</p>' },
+    it('a changed template applies to saved galleries: the field is written again when the editor opens', () => {
+        const old = '<div class="gallery" data-gallery="grid" id="g"><figure class="gallery__item"><img src="a.jpg" alt="A"><figcaption>Cap</figcaption></figure></div>';
+        start(`${old}<p>x</p>`, {
+            galleryTemplateFiles: { grid: { label: 'Grid', wrapper: '<section class="photos">{items}</section>', item: '<div class="photo">{image}{caption}</div>' } },
         });
-        expect(Object.keys(own)).toEqual(['grid', 'slider', 'images']);
-        expect(own.slider.label).toBe('Мой слайдер');
-        expect(errors).toEqual([
-            'gallery template "plain" skipped: its outer element needs a class',
-            'gallery template "twin" skipped: same outer element as "grid"',
-        ]);
-        const el = renderGallery(document, { template: 'slider', items: items.slice(0, 1), lightbox: false }, { templates: own });
-        expect(el.outerHTML).toBe('<section class="my-slider"><div class="slide"><img src="img/1.jpg" alt="One"></div></section>');
-        expect(parseGallery(el, { templates: own })).toMatchObject({ template: 'slider' });
+        expect(types()).toEqual(['gallery', 'paragraph', 'text']);
+        const updated = '<section class="photos" data-gallery="grid" id="g"><div class="photo"><img src="a.jpg" alt="A"><figcaption>Cap</figcaption></div></section><p>x</p>';
+        expect(serialize(instance.editor)).toBe(updated);
+        expect(document.getElementById('ta').value).toBe(updated);
     });
 
     it('markup it cannot keep stays an HTML block', () => {
-        start('<div data-tiptapeditor-gallery="grid"><figure><img src="a.jpg"><figcaption>A <b>bold</b> caption</figcaption></figure></div>'
+        start('<div data-gallery="grid"><figure><img src="a.jpg"><figcaption>A <b>bold</b> caption</figcaption></figure></div>'
             + '<div data-tiptapeditor-gallery="grid"><p>text</p><img src="b.jpg"></div>');
         expect(types()).not.toContain('gallery');
         expect(types().filter((t) => t === 'rawHtml')).toHaveLength(2);
@@ -246,7 +232,7 @@ describe('gallery', () => {
         const html = serialize(instance.editor);
         const group = /data-fancybox="(gallery-[a-z0-9]+)"/.exec(html)?.[1];
         expect(group).toBeTruthy();
-        expect(html).toBe(`<p>Text</p><div class="gallery">`
+        expect(html).toBe(`<p>Text</p><div class="gallery" data-gallery="grid">`
             + `<figure class="gallery__item"><a href="assets/uploads/b.png" data-fancybox="${group}" aria-label="Open image: Bee"><img src="assets/uploads/b.png" alt="Bee"></a><figcaption>A bee</figcaption></figure>`
             + `<figure class="gallery__item"><a href="assets/uploads/a.png" data-fancybox="${group}" aria-label="Open image:"><img src="assets/uploads/a.png" alt=""></a></figure></div>`);
         expect(n).toBe(1);

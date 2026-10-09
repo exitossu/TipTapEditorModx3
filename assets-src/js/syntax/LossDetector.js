@@ -19,10 +19,17 @@ const EQUIVALENT_TAGS = {
 // Elements whose presence Tiptap guarantees by itself or which are pure wrappers.
 const IGNORED_TAGS = new Set(['html', 'head', 'body', 'tbody']);
 /**
- * The editor's own old gallery marker (data-tiptapeditor-gallery, earlier data-tiptaprte-gallery):
- * a gallery is known by its template now, and the marker is not written again.
+ * Galleries made by the editor (data-gallery, earlier data-tiptapeditor-gallery or
+ * data-tiptaprte-gallery on the outer element) are written with their current template, so
+ * their markup may change. Only what they hold must survive: the pictures with all their
+ * attributes, the links' addresses and the captions (text). The outer element keeps its own
+ * attributes except the class and the marker; its tag and class come from the template.
  */
-const DROPPED_ATTRIBUTES = new Set(['data-tiptapeditor-gallery', 'data-tiptaprte-gallery']);
+const GALLERY_MARKERS = ['data-gallery', 'data-tiptapeditor-gallery', 'data-tiptaprte-gallery'];
+
+function isGallery(el) {
+    return el.localName !== 'a' && GALLERY_MARKERS.some((name) => el.hasAttribute(name));
+}
 
 function canonicalTag(el) {
     const tag = el.localName;
@@ -82,6 +89,7 @@ function inventory(body, { ignoreStyle = false } = {}) {
     const add = (map, key) => map.set(key, (map.get(key) || 0) + 1);
 
     const walker = body.ownerDocument.createTreeWalker(body, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT);
+    let gallery = null;
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         if (node.nodeType === Node.COMMENT_NODE) {
             comments++;
@@ -91,19 +99,34 @@ function inventory(body, { ignoreStyle = false } = {}) {
         if (IGNORED_TAGS.has(tag)) {
             continue;
         }
-        add(tags, tag);
+        if (gallery && !gallery.contains(node)) {
+            gallery = null;
+        }
+        const galleryRoot = !gallery && isGallery(node);
+        if (gallery && tag !== 'img' && tag !== 'a') {
+            continue;
+        }
+        // The outer element of a gallery: its tag comes from the template too.
+        const key = galleryRoot ? 'gallery' : tag;
+        add(tags, key);
         for (const attr of node.attributes) {
             if (attr.name === 'style' && ignoreStyle) {
+                continue;
+            }
+            if ((galleryRoot && (attr.name === 'class' || GALLERY_MARKERS.includes(attr.name))) || (gallery && tag === 'a' && attr.name !== 'href')) {
                 continue;
             }
             if (attr.name === 'style') {
                 // Compare the CSS, not its spelling: "color:red" == "color: red;".
                 for (const declaration of styleKeys(attr.value)) {
-                    add(attributes, `${tag}[style ${declaration}]`);
+                    add(attributes, `${key}[style ${declaration}]`);
                 }
-            } else if (!DROPPED_ATTRIBUTES.has(attr.name)) {
-                add(attributes, `${tag}[${attr.name}="${attr.value}"]`);
+            } else {
+                add(attributes, `${key}[${attr.name}="${attr.value}"]`);
             }
+        }
+        if (galleryRoot) {
+            gallery = node;
         }
     }
     const text = (body.textContent || '').replace(/\s+/g, '');

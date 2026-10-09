@@ -242,7 +242,6 @@ export function openGalleryDialog(editor, context) {
             group: attrs.group || (lightbox.checked ? newGroup() : null),
             // Another template brings its own outer element.
             wrapper: template.value === attrs.template ? (attrs.wrapper ?? null) : null,
-            // Edited: written with the template from now on.
             source: null,
         };
         dialog.close();

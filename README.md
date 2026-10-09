@@ -66,7 +66,7 @@ The package is written to `core/packages/tiptapeditor-<version>.transport.zip`.
 - **From TiptapRTE (0.1.0-alpha15 and older)**: the extra was renamed to TipTapEditor (namespace,
   settings `tiptapeditor.*`, folders, plugin). Uninstall the old TiptapRTE package first, then
   install TipTapEditor and set your settings again under the new prefix. Galleries saved with
-  `data-tiptaprte-gallery` still open as galleries; the attribute is dropped when they are edited.
+  `data-tiptaprte-gallery` still open as galleries and get `data-gallery` when saved again.
 - **Uninstall** removes files, plugin, settings and namespace. Wherever `which_editor` pointed to TipTapEditor (system, context,
   user group or user settings) it is reset to empty (plain textarea). Resource content and TV values are never modified.
 
@@ -537,9 +537,9 @@ upload (`Image/UploadFolder`, `Media\UploadPath`): `{id}` `{pid}` `{alias}` `{pa
   pictures); `gallery_template` is the default. Each template is a file in `gallery_templates_path`
   (default `core/elements/tiptapeditor/gallery/`, `grid.html`, `slider.html` …): the outer markup
   with `{items}`, a `<!-- item -->` line, then one picture with `{image}` and `{caption}`. Install
-  adds the default files once; updates never overwrite or delete them. A gallery is known by the tag and classes of its outer element (every
-  template needs a class there), so the content has no extra attribute; it keeps its markup until
-  it is edited in the dialog. Scripts and `on*` attributes in templates are removed.
+  adds the default files once; updates never overwrite or delete them. The outer element carries
+  `data-gallery="<template>"` so the gallery can be edited again; a changed template applies to
+  saved galleries when their resource is opened and saved. Scripts and `on*` attributes in templates are removed.
 
 ## Saving
 

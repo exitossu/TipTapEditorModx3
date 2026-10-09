@@ -104,6 +104,6 @@ $_lang['setting_tiptapeditor.gallery_templates_path_desc'] = 'Папка с фа
 $_lang['setting_tiptapeditor.lightbox'] = 'Увеличение изображений по клику';
 $_lang['setting_tiptapeditor.lightbox_desc'] = 'Новые изображения и галереи получают ссылку на изображение вокруг картинки (<figure><a href="…"><img></a></figure>) для скрипта-лайтбокса на сайте. В диалоге включается и выключается для каждой картинки и галереи.';
 $_lang['setting_tiptapeditor.lightbox_attribute'] = 'Атрибут лайтбокса';
-$_lang['setting_tiptapeditor.lightbox_attribute_desc'] = 'Атрибут, который ищет ваш скрипт-лайтбокс, например data-fancybox (Fancybox), data-lightbox, data-gallery. У одиночного изображения он без значения, у галереи — с именем группы (data-fancybox="gallery-3fa9c1"). Пусто — обычная ссылка.';
+$_lang['setting_tiptapeditor.lightbox_attribute_desc'] = 'Атрибут, который ищет ваш скрипт-лайтбокс, например data-fancybox (Fancybox), data-lightbox. У одиночного изображения он без значения, у галереи — с именем группы (data-fancybox="gallery-3fa9c1"). Пусто — обычная ссылка.';
 $_lang['setting_tiptapeditor.lightbox_label'] = 'Подпись ссылки увеличения';
 $_lang['setting_tiptapeditor.lightbox_label_desc'] = 'aria-label ссылки, {alt} — альтернативный текст или подпись. Пусто — «Открыть изображение: {alt}» на языке менеджера.';

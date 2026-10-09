@@ -5,6 +5,7 @@ import { removeNotice, showNotice } from '../ui/Notice.js';
 import { isRendered, resolveTextareas } from '../utils/dom.js';
 import { emit } from '../utils/events.js';
 import { createTranslator } from '../utils/i18n.js';
+import { hasOutdatedGalleries } from '../extensions/Gallery.js';
 
 const MARKER = 'data-tiptap-initialized';
 const HIDDEN_CLASS = 'tiptapeditor-source--hidden';
@@ -69,6 +70,9 @@ export class EditorManager {
             const { editor, root, source, dispose } = createEditor(textarea, config, this.t, this.logger);
             const binding = new TextareaBinding(textarea, editor, { delay: config.syncDelay });
             source.binding = binding;
+            if (hasOutdatedGalleries(editor)) {
+                binding.refresh();
+            }
             const instance = { editor, root, textarea, binding, source, config, field, dispose };
 
             removeNotice(textarea);
