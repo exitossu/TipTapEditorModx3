@@ -32,9 +32,17 @@ try {
 } catch (error) {
     server = error.stdout?.toString() || String(error);
 }
+try {
+    server += php('./upload-path.php');
+} catch (error) {
+    server += error.stdout?.toString() || String(error);
+}
 for (const line of server.split('\n').filter((l) => /^(ok |FAIL)/.test(l))) {
     check(`server: ${line.slice(5)}`, line.startsWith('ok'), line);
 }
+// Uploads below go into a folder and with a name prefix made of placeholders.
+settings('tiptapeditor.upload_enabled', '1', 'tiptapeditor.upload_path', `${UPLOADS}{id}/`, 'tiptapeditor.upload_file_prefix', '{id}-');
+const own = String(resources.assist);
 rmSync(`${site}/${UPLOADS}`, { recursive: true, force: true });
 
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined });
@@ -77,13 +85,13 @@ await dialogButton('Upload from computer…').click();
 await (await chooser).setFiles({ name: 'Фото 1.png', mimeType: 'image/png', buffer: PNG });
 await page.waitForFunction(() => /e2e-uploads/.test(document.querySelector('.tiptapeditor-dialog--image input')?.value || ''), null, { timeout: 20000 }).catch(() => {});
 const field = await page.locator('.tiptapeditor-dialog--image input').first().inputValue();
-check('the uploaded file fills the URL field', /^assets\/e2e-uploads\/foto-1-[a-z0-9]+\.png$/.test(field), field);
+check('the uploaded file fills the URL field', new RegExp(`^assets/e2e-uploads/${own}/${own}-foto-1-[a-z0-9]+\\.png$`).test(field), field);
 await page.locator('.tiptapeditor-dialog--image').getByLabel('Alternative text (alt)', { exact: true }).fill('Uploaded photo');
 await page.click('.tiptapeditor-dialog--image .tiptapeditor-dialog__button--primary');
 let list = await images();
 const uploaded = list[0]?.src || '';
-const files = existsSync(`${site}/${UPLOADS}`) ? readdirSync(`${site}/${UPLOADS}`) : [];
-check('uploaded into upload_path with a safe name', /^assets\/e2e-uploads\/foto-1-[a-z0-9]+\.png$/.test(uploaded) && files.includes(uploaded.split('/').pop()), JSON.stringify({ list, files }));
+const files = existsSync(`${site}/${UPLOADS}${own}`) ? readdirSync(`${site}/${UPLOADS}${own}`) : [];
+check('uploaded into upload_path with {id} filled in, prefix and a safe name', new RegExp(`^assets/e2e-uploads/${own}/${own}-foto-1-[a-z0-9]+\\.png$`).test(uploaded) && files.includes(uploaded.split('/').pop()), JSON.stringify({ list, files }));
 check('alt from the dialog is applied', list[0]?.alt === 'Uploaded photo', JSON.stringify(list));
 await save();
 let content = db(resources.assist).content;
@@ -129,6 +137,6 @@ await page.click('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__button:has
 
 check('no page errors', errors.length === 0, errors.join('; '));
 await browser.close();
-settings('tiptapeditor.upload_enabled', '0', 'tiptapeditor.upload_path', 'assets/uploads/');
+settings('tiptapeditor.upload_enabled', '0', 'tiptapeditor.upload_path', 'assets/uploads/', 'tiptapeditor.upload_file_prefix', '');
 rmSync(`${site}/${UPLOADS}`, { recursive: true, force: true });
 process.exit(failed ? 1 : 0);

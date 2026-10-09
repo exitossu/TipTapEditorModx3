@@ -4,6 +4,14 @@ outline: false
 
 # Changelog
 
+## 0.1.0-alpha18
+
+- Placeholders in tiptapeditor.upload_path and the new tiptapeditor.upload_file_prefix: {id}, {pid},
+  {alias}, {palias}, {context}, {tid}, {uid}, {rand}, {t}, {y}, {m}, {d}, {h}, {i}, {s}, e.g.
+  assets/uploads/{y}/{m}/{id}/. Filled in on the server for each upload from the computer, by
+  link and by drag and drop (new processor Image/UploadFolder). {id} and {alias} need a saved
+  resource; values cannot add or leave folder levels. New setting upload_rand_length.
+
 ## 0.1.0-alpha17
 
 - Checkboxes in dialogs ("Open larger on click" in the image and gallery dialogs) sit next to

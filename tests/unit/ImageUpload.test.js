@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorManager } from '../../assets-src/js/editor/EditorManager.js';
-import { createImportHandler, IMAGE_IMPORT } from '../../assets-src/js/modx/upload.js';
+import { createImportHandler, createUploadHandler, IMAGE_IMPORT, UPLOAD_FOLDER } from '../../assets-src/js/modx/upload.js';
 import { createLogger } from '../../assets-src/js/utils/logger.js';
 
 const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -152,5 +152,67 @@ describe('image from computer and by URL', () => {
         expect(createImportHandler({ ...base, uploadEnabled: false })).toBeNull();
         expect(createImportHandler({ ...base, mediaSource: null })).toBeNull();
         expect(createImportHandler({ ...base, connectorUrl: '' })).toBeNull();
+    });
+});
+
+describe('placeholders in the upload folder and file name prefix', () => {
+    const config = (extra = {}) => ({
+        mediaSource: { id: 2 },
+        connectorUrl: '/assets/components/tiptapeditor/connector.php',
+        resource: { id: 15, parent: 3, context: 'web' },
+        field: { id: 7 },
+        uploadEnabled: true,
+        uploadPath: 'assets/uploads/{y}/{id}/',
+        uploadFilePrefix: '',
+        ...extra,
+    });
+
+    function server(folder) {
+        const calls = [];
+        vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, request) => {
+            const body = request.body;
+            const action = body.get('action');
+            calls.push({ action, path: body.get('path'), resource: body.get('resource'), parent: body.get('parent'), tv: body.get('tv'), name: body.get('file')?.name });
+            if (action === UPLOAD_FOLDER) {
+                return new Response(JSON.stringify({ success: true, object: folder }));
+            }
+            if (action === 'Browser/File/Upload') {
+                return new Response(JSON.stringify({ success: true }));
+            }
+            const name = calls.find((c) => c.action === 'Browser/File/Upload').name;
+            return new Response(JSON.stringify({ success: true, results: [{ name, fullRelativeUrl: `${folder.path}${name}` }] }));
+        });
+        return calls;
+    }
+
+    it('asks the server for the folder and prefix of this resource and TV, then uploads there', async () => {
+        window.MODx = { config: { connector_url: '/connectors/index.php' } };
+        const calls = server({ path: 'assets/uploads/2026/15/', prefix: '15-' });
+        const upload = createUploadHandler(config({ uploadFilePrefix: '{id}-' }));
+        const src = await upload(new File(['x'], 'Фото.png', { type: 'image/png' }));
+        expect(calls[0]).toMatchObject({ action: UPLOAD_FOLDER, resource: '15', parent: '3', tv: '7' });
+        expect(calls[1]).toMatchObject({ action: 'Browser/File/Upload', path: 'assets/uploads/2026/15/' });
+        expect(calls[1].name).toMatch(/^15-foto-[a-z0-9]+\.png$/);
+        expect(src).toBe(`assets/uploads/2026/15/${calls[1].name}`);
+    });
+
+    it('a plain folder needs no extra request', async () => {
+        window.MODx = { config: { connector_url: '/connectors/index.php' } };
+        const calls = server({ path: 'x/', prefix: '' });
+        await createUploadHandler(config({ uploadPath: 'assets/uploads/' }))(new File(['x'], 'a.png', { type: 'image/png' }));
+        expect(calls.map((c) => c.action)).toEqual(['Browser/File/Upload', 'Browser/Directory/GetFiles']);
+        expect(calls[0].path).toBe('assets/uploads/');
+    });
+
+    it('a new resource is asked to be saved first when the folder uses {id} or {alias}', async () => {
+        window.MODx = { config: { connector_url: '/connectors/index.php' } };
+        const calls = server({ path: 'x/', prefix: '' });
+        const t = (key) => (key === 'upload_save_first' ? 'Save first' : key);
+        const upload = createUploadHandler(config({ resource: { id: 0, parent: 3, context: 'web' } }), t);
+        await expect(upload(new File(['x'], 'a.png', { type: 'image/png' }))).rejects.toThrow('Save first');
+        expect(calls).toHaveLength(0);
+        // {pid} works before saving: the parent is known.
+        await createUploadHandler(config({ resource: { id: 0, parent: 3, context: 'web' }, uploadPath: 'u/{pid}/' }), t)(new File(['x'], 'a.png', { type: 'image/png' }));
+        expect(calls[0]).toMatchObject({ action: UPLOAD_FOLDER, resource: '0', parent: '3' });
     });
 });

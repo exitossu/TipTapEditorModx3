@@ -58,6 +58,8 @@ class OnRichTextEditorInit extends Plugin
             'elements' => $this->getElements(),
             'resource' => [
                 'id' => (int)($this->scriptProperties['id'] ?? ($resource ? $resource->get('id') : 0)),
+                // Parent of a new resource (resource/create&parent=…), for {pid}/{palias} in upload paths.
+                'parent' => (int)($resource ? $resource->get('parent') : ($_REQUEST['parent'] ?? 0)),
                 'context' => $context,
             ],
             'mode' => (string)($this->scriptProperties['mode'] ?? ''),

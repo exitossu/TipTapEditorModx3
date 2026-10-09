@@ -68,7 +68,9 @@ This page is generated from the package sources (`npm run docs:generate`).
 | <code>tiptapeditor.media_source</code> | **Media source** Media source ID for the file browser. Empty uses the context default or the TV source. | (empty) |
 | <code>tiptapeditor.media_url_mode</code> | **Media URL mode** "relative" (default) stores the URL exactly as the MODX Media Browser returns it, like the Image TV; "root" prefixes relative URLs with the site base URL (e.g. /assets/img/a.jpg). Absolute URLs (S3 and other remote sources) are always kept as they are. | <code>relative</code> |
 | <code>tiptapeditor.upload_enabled</code> | **Upload dropped and pasted images** Upload images dropped or pasted into the editor into the field's Media Source, folder tiptapeditor.upload_path. Uploads go through the MODX file upload (permission file_upload, the source's policies, allowed file types and upload_maxsize apply). Images are never stored as base64. | No |
-| <code>tiptapeditor.upload_path</code> | **Upload folder** Folder inside the field's Media Source for dropped and pasted images, e.g. assets/uploads/. | <code>assets/uploads/</code> |
+| <code>tiptapeditor.upload_path</code> | **Upload folder** Folder in the field's Media Source for uploaded images, e.g. assets/uploads/ or assets/uploads/{y}/{m}/{id}/. Placeholders: {id}, {pid} (parent ID), {alias}, {palias} (parent alias), {context}, {tid} (TV ID, empty for the content field), {uid} (user ID), {rand} (random string), {t} (timestamp), {y}, {m}, {d}, {h}, {i}, {s}. {id} and {alias} need a saved resource. | <code>assets/uploads/</code> |
+| <code>tiptapeditor.upload_file_prefix</code> | **Upload file name prefix** Added before the name of uploaded images, e.g. {id}- gives 15-photo-x7k2q9.jpg. Same placeholders as the upload folder. | (empty) |
+| <code>tiptapeditor.upload_rand_length</code> | **Length of {rand}** Number of characters of the {rand} placeholder (1–32). | <code>6</code> |
 
 ## System
 

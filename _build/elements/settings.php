@@ -64,6 +64,8 @@ return [
     'media_url_mode' => ['xtype' => 'textfield', 'value' => 'relative', 'area' => 'tiptapeditor.modx'],
     'upload_enabled' => ['xtype' => 'combo-boolean', 'value' => false, 'area' => 'tiptapeditor.modx'],
     'upload_path' => ['xtype' => 'textfield', 'value' => 'assets/uploads/', 'area' => 'tiptapeditor.modx'],
+    'upload_file_prefix' => ['xtype' => 'textfield', 'value' => '', 'area' => 'tiptapeditor.modx'],
+    'upload_rand_length' => ['xtype' => 'numberfield', 'value' => 6, 'area' => 'tiptapeditor.modx'],
 
     // System
     'external_config' => ['xtype' => 'textfield', 'value' => '', 'area' => 'tiptapeditor.system'],

@@ -68,7 +68,9 @@ outline: [2, 2]
 | <code>tiptapeditor.media_source</code> | **Источник файлов** ID источника файлов для файлового браузера. Пусто — источник контекста по умолчанию или источник TV. | (пусто) |
 | <code>tiptapeditor.media_url_mode</code> | **Формат URL файлов** «relative» (по умолчанию) — URL в точности как вернул файловый менеджер MODX, как в TV «Изображение»; «root» — к относительным URL добавляется base URL сайта (например, /assets/img/a.jpg). Абсолютные URL (S3 и другие удалённые источники) всегда сохраняются как есть. | <code>relative</code> |
 | <code>tiptapeditor.upload_enabled</code> | **Загрузка перетаскиванием и вставкой** Загружать перетащенные и вставленные в редактор изображения в источник файлов поля, в папку tiptapeditor.upload_path. Загрузка идёт через штатную загрузку MODX (право file_upload, политики источника, разрешённые типы файлов и upload_maxsize). Изображения никогда не сохраняются в base64. | Нет |
-| <code>tiptapeditor.upload_path</code> | **Папка загрузки** Папка в источнике файлов поля для перетащенных и вставленных изображений, например assets/uploads/. | <code>assets/uploads/</code> |
+| <code>tiptapeditor.upload_path</code> | **Папка загрузки** Папка в источнике файлов поля для загружаемых изображений, например assets/uploads/ или assets/uploads/{y}/{m}/{id}/. Подстановки: {id}, {pid} (ID родителя), {alias}, {palias} (алиас родителя), {context}, {tid} (ID TV, пусто для поля content), {uid} (ID пользователя), {rand} (случайная строка), {t} (timestamp), {y}, {m}, {d}, {h}, {i}, {s}. {id} и {alias} работают после сохранения ресурса. | <code>assets/uploads/</code> |
+| <code>tiptapeditor.upload_file_prefix</code> | **Префикс имени загружаемого файла** Добавляется перед именем загруженного изображения, например {id}- даст 15-photo-x7k2q9.jpg. Те же подстановки, что в папке загрузки. | (пусто) |
+| <code>tiptapeditor.upload_rand_length</code> | **Длина {rand}** Количество символов подстановки {rand} (1–32). | <code>6</code> |
 
 ## Система
 

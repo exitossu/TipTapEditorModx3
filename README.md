@@ -4,7 +4,7 @@ A rich text editor for the MODX 3 manager built on [Tiptap 3](https://tiptap.dev
 It registers as **TipTapEditor** in the `which_editor` system setting and replaces the resource
 content field and RichText template variables.
 
-> Status: **0.1.0-alpha17, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
+> Status: **0.1.0-alpha18, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
 > Documentation: https://exitossu.github.io/TipTapEditorModx3/ (sources in `docs/`, `npm run docs:dev`).
 
 ## Requirements
@@ -494,6 +494,11 @@ With `upload_enabled` (and the user's `file_upload` permission) images can be ad
 Media Browser. They are stored in `upload_path` of the field's Media Source, under a safe name
 (`Скриншот 1.png` → `skrinshot-1-x7k2q9.png`). The Media Source decides allowed file types and
 folders; `upload_maxsize` applies.
+
+`upload_path` and `upload_file_prefix` may use placeholders, filled in on the server for each
+upload (`Image/UploadFolder`, `Media\UploadPath`): `{id}` `{pid}` `{alias}` `{palias}` `{context}`
+`{tid}` `{uid}` `{rand}` (`upload_rand_length` characters) `{t}` `{y}` `{m}` `{d}` `{h}` `{i}` `{s}`.
+`{id}` and `{alias}` need a saved resource. Values cannot add or leave folder levels.
 
 - **Drag and drop or paste** image files into the text: uploaded through MODX
   (`Browser/File/Upload`) and inserted with the source's URL. Without `upload_enabled` dropped

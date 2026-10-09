@@ -64,7 +64,7 @@ export function createEditor(textarea, config, t, logger) {
     // Bubble and floating menus stay away while the source view is open.
     const menus = createMenus(config, t, { blocked: () => Boolean(ui.context?.source?.active) });
 
-    const uploadHandler = typeof config.uploadHandler === 'function' ? config.uploadHandler : createUploadHandler(config);
+    const uploadHandler = typeof config.uploadHandler === 'function' ? config.uploadHandler : createUploadHandler(config, t);
 
     let editor;
     try {

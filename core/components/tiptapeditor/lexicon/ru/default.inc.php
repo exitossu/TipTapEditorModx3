@@ -48,6 +48,7 @@ $_lang['tiptapeditor.file_link'] = 'Ссылка на файл';
 $_lang['tiptapeditor.media_browser_failed'] = 'Не удалось открыть файловый менеджер.';
 $_lang['tiptapeditor.upload_not_configured'] = 'Загрузка перетаскиванием и вставкой не настроена. Нажмите кнопку «Изображение» и выберите файл в файловом менеджере.';
 $_lang['tiptapeditor.upload_failed'] = 'Не удалось загрузить файл.';
+$_lang['tiptapeditor.upload_save_first'] = 'Сначала сохраните ресурс: папка загрузки использует его ID или алиас.';
 $_lang['tiptapeditor.not_an_image'] = 'Этот файл не является изображением. Выберите файл JPG, PNG, GIF, WebP, SVG или AVIF.';
 $_lang['tiptapeditor.link'] = 'Ссылка';
 $_lang['tiptapeditor.link_insert'] = 'Вставить ссылку';

@@ -4,7 +4,8 @@ import { fileUrl } from './MediaBrowser.js';
 /**
  * Upload of dropped and pasted images (tiptapeditor.upload_enabled) through MODX itself: the
  * core processor Browser/File/Upload of the field's Media Source, into tiptapeditor.upload_path
- * inside that source. MODX checks the file_upload permission, the source's "create" policy,
+ * inside that source. When upload_path or upload_file_prefix hold placeholders ({id}, {alias},
+ * {y} …), the server fills them in for this resource and TV first (Image/UploadFolder). MODX checks the file_upload permission, the source's "create" policy,
  * the allowed file types and upload_maxsize; the editor never writes files itself.
  * The URL is the one MODX lists for the uploaded file (Browser/Directory/GetFiles), stored the
  * same way as a file chosen in the Media Browser (tiptapeditor.media_url_mode).
@@ -62,22 +63,54 @@ async function call(url, body) {
     return data;
 }
 
+export const UPLOAD_FOLDER = 'TipTapEditor\\Processors\\Image\\UploadFolder';
+const NEEDS_SAVED_RESOURCE = /\{(id|alias)\}/;
+
+/** Does upload_path / upload_file_prefix need the server to fill in placeholders? */
+export function hasUploadPlaceholders(config) {
+    return /\{[a-z]+\}/.test(String(config?.uploadPath ?? '')) || Boolean(config?.uploadFilePrefix);
+}
+
+/** Resource, parent and TV of a field, sent with uploads for the placeholders. */
+function targetParams(config) {
+    return {
+        resource: String(config.resource?.id || 0),
+        parent: String(config.resource?.parent || 0),
+        tv: String(config.field?.id || ''),
+    };
+}
+
+/**
+ * Folder and name prefix for the next upload: the setting as is, or filled in by the server.
+ * A new resource cannot use {id} or {alias} yet: the user is asked to save it first.
+ */
+async function uploadTarget(config, source, context, t) {
+    if (!hasUploadPlaceholders(config)) {
+        return { dir: uploadDirectory(config.uploadPath), prefix: '' };
+    }
+    if (!config.resource?.id && NEEDS_SAVED_RESOURCE.test(`${config.uploadPath}${config.uploadFilePrefix}`)) {
+        throw new Error(t('upload_save_first'));
+    }
+    const data = await connectorRequest(config, UPLOAD_FOLDER, { source, wctx: context, ...targetParams(config) });
+    return { dir: uploadDirectory(data.object?.path), prefix: String(data.object?.prefix || '').replace(/[^\p{L}\p{N}_.-]+/gu, '-') };
+}
+
 /**
  * The upload handler for a field, or null when uploads are off or the field has no Media
  * Source the user may use.
  * @returns {((file: File) => Promise<string>)|null}
  */
-export function createUploadHandler(config) {
+export function createUploadHandler(config, t = (key) => key) {
     if (!config?.uploadEnabled || !config.mediaSource?.id || !managerConnector()) {
         return null;
     }
     const source = String(config.mediaSource.id);
-    const dir = uploadDirectory(config.uploadPath);
     const context = String(config.resource?.context || 'web');
 
     return async (file) => {
         const connector = managerConnector();
-        const name = uploadName(file);
+        const { dir, prefix } = await uploadTarget(config, source, context, t);
+        const name = `${prefix}${uploadName(file)}`;
         const upload = new FormData();
         upload.set('action', 'Browser/File/Upload');
         upload.set('source', source);
@@ -119,7 +152,7 @@ export function createImportHandler(config) {
     const context = String(config.resource?.context || 'web');
 
     return async (url) => {
-        const data = await connectorRequest(config, IMAGE_IMPORT, { source, url: String(url).trim(), wctx: context });
+        const data = await connectorRequest(config, IMAGE_IMPORT, { source, url: String(url).trim(), wctx: context, ...targetParams(config) });
         const name = String(data.object?.name || '');
         if (!name) {
             throw new Error('Request failed');

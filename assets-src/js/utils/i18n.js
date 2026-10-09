@@ -44,6 +44,7 @@ const fallback = {
     media_browser_failed: 'The Media Browser could not be opened.',
     upload_not_configured: 'Uploading by drag and drop or paste is not set up. Use the Image button to choose a file in the Media Browser.',
     upload_failed: 'The file could not be uploaded.',
+    upload_save_first: 'Save the resource first: the upload folder uses its ID or alias.',
     link: 'Link',
     link_insert: 'Insert link',
     link_edit: 'Edit link',

@@ -78,6 +78,31 @@ Uploads are off by default. Turn on `tiptapeditor.upload_enabled` to allow them.
 - The upload goes through MODX's own file upload. The user needs the `file_upload` permission and the source's `create` policy. The Media Source decides which file types are allowed, and `upload_maxsize` applies.
 - Images are never stored as base64 in the content.
 
+### Placeholders in the folder and file name {#upload-placeholders}
+
+`tiptapeditor.upload_path` and `tiptapeditor.upload_file_prefix` (a prefix for the file name) may hold placeholders. The server fills them in at upload time:
+
+| Placeholder | Value |
+|---|---|
+| `{id}` | resource ID |
+| `{pid}` | parent ID |
+| `{alias}` | resource alias |
+| `{palias}` | parent alias |
+| `{context}` | context key |
+| `{tid}` | TV ID; empty for the content field |
+| `{uid}` | user ID |
+| `{rand}` | random string, `tiptapeditor.upload_rand_length` characters (default 6) |
+| `{t}` | timestamp |
+| `{y}` `{m}` `{d}` | year, month, day |
+| `{h}` `{i}` `{s}` | hour, minute, second |
+
+Example: folder `assets/uploads/{y}/{m}/{id}/` and prefix `{id}-` give `assets/uploads/2026/10/15/15-skrinshot-1-x7k2q9.png` for resource 15.
+
+- `{id}` and `{alias}` work **once the resource is saved**. In a new, unsaved resource the editor asks to save it first. `{pid}` and `{palias}` work right away.
+- The alias comes from the saved resource: after changing it, save the resource and the next uploads go to the new folder. Files already uploaded are not moved.
+- An empty value (`{tid}` in the content field, `{palias}` of a top-level resource) removes that folder level.
+- A value can never add or leave a folder level: `/`, `\` and other unsafe characters become `-`.
+
 With uploads on, you can add images:
 
 - by dragging image files into the text, or pasting them;

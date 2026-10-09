@@ -19,7 +19,7 @@ use TipTapEditor\Config\SettingParser;
 class TipTapEditor
 {
     /** Must match package.json "version" + "modx.release"; _build/build.php enforces it. */
-    public const VERSION = '0.1.0-alpha17';
+    public const VERSION = '0.1.0-alpha18';
 
     public const NAMESPACE = 'tiptapeditor';
 
@@ -164,6 +164,8 @@ class TipTapEditor
             // file_upload and the Media Source policies again on every request.
             'uploadEnabled' => $this->getBoolOption('upload_enabled', [], false) && $this->modx->hasPermission('file_upload'),
             'uploadPath' => (string)$this->getOption('upload_path', [], 'assets/uploads/'),
+            // Placeholders ({id}, {alias}, {y} …) are filled in on the server for each upload.
+            'uploadFilePrefix' => (string)$this->getOption('upload_file_prefix', [], ''),
             'mediaUrlMode' => $this->getOption('media_url_mode', [], 'relative') === 'root' ? 'root' : 'relative',
             'siteBaseUrl' => (string)$this->modx->getOption('base_url', null, '/'),
             'resourceLinkFormat' => (string)$this->getOption('resource_link_format', [], '[[~{id}]]'),

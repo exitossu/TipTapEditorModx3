@@ -147,6 +147,9 @@ await page.click('[data-tiptapeditor-for="ta"] .ProseMirror');
 await page.keyboard.type('Brand new');
 const created = await save();
 const newId = created?.object?.id;
+// MODX moves on to the update page of the new resource by itself; let it finish first.
+await page.waitForURL(/a=resource\/update/, { timeout: 10000 }).catch(() => {});
+await page.waitForLoadState('networkidle');
 check('create saves content', newId && db(newId)?.content === '<p>Brand new</p>', JSON.stringify(newId && db(newId)));
 
 // 6. Toolbar and keyboard save.

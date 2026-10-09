@@ -37,6 +37,7 @@ export const defaults = Object.freeze({
     // Upload of dropped/pasted images into the field's Media Source (tiptapeditor.upload_enabled).
     uploadEnabled: false,
     uploadPath: 'assets/uploads/',
+    uploadFilePrefix: '',
     // Media Browser: the field's Media Source ({ id, name, baseUrl } or null when the user
     // may not browse), how picked file URLs are stored, and the site base URL for previews.
     mediaSource: null,

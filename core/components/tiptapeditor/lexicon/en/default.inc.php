@@ -48,6 +48,7 @@ $_lang['tiptapeditor.file_link'] = 'Link to a file';
 $_lang['tiptapeditor.media_browser_failed'] = 'The Media Browser could not be opened.';
 $_lang['tiptapeditor.upload_not_configured'] = 'Uploading by drag and drop or paste is not set up. Use the Image button to choose a file in the Media Browser.';
 $_lang['tiptapeditor.upload_failed'] = 'The file could not be uploaded.';
+$_lang['tiptapeditor.upload_save_first'] = 'Save the resource first: the upload folder uses its ID or alias.';
 $_lang['tiptapeditor.not_an_image'] = 'This file is not an image. Choose a JPG, PNG, GIF, WebP, SVG or AVIF file.';
 $_lang['tiptapeditor.link'] = 'Link';
 $_lang['tiptapeditor.link_insert'] = 'Insert link';

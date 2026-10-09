@@ -12,14 +12,17 @@ use TipTapEditor\Media\RemoteImage;
  *
  * Runs through the manager connector (session + modAuth) with the same checks as MODX's own
  * upload (Browser/File/Upload): the file_upload permission, the source's "create" policy, its
- * allowed file types and upload_maxsize. Also needs tiptapeditor.upload_enabled. The folder is the
- * system setting, never a path from the request. Download rules: see Media\RemoteImage.
+ * allowed file types and upload_maxsize. Also needs tiptapeditor.upload_enabled. The folder and
+ * the name prefix come from the system settings with their placeholders filled in for the
+ * resource (UploadTarget), never a path from the request. Download rules: see Media\RemoteImage.
  *
- * Properties: source (Media Source id), url, wctx.
+ * Properties: source (Media Source id), url, wctx, resource, parent, tv.
  * Result object: name (file name in the upload folder), path (the upload folder).
  */
 class Import extends Browser
 {
+    use UploadTarget;
+
     public $permission = 'file_upload';
     public $policy = 'create';
     public $languageTopics = ['file', 'tiptapeditor:default'];
@@ -29,7 +32,11 @@ class Import extends Browser
         if (!$this->modx->getOption('tiptapeditor.upload_enabled', null, false)) {
             return $this->failure($this->modx->lexicon('permission_denied'));
         }
-        $path = $this->uploadPath();
+        try {
+            ['path' => $path, 'prefix' => $prefix] = $this->uploadTarget();
+        } catch (RuntimeException $error) {
+            return $this->failure($this->modx->lexicon('tiptapeditor.' . $error->getMessage()));
+        }
         $url = (string)$this->getProperty('url', '');
         $maxBytes = (int)$this->modx->getOption('upload_maxsize', null, 1048576);
 
@@ -39,7 +46,7 @@ class Import extends Browser
             return $this->failure($this->modx->lexicon('tiptapeditor.' . $error->getMessage()));
         }
 
-        $name = RemoteImage::fileName($image['name'], $image['extension']);
+        $name = $prefix . RemoteImage::fileName($image['name'], $image['extension']);
         if (!$this->source->createObject($path, $name, $image['content'])) {
             $errors = $this->source->getErrors();
 
@@ -52,14 +59,5 @@ class Import extends Browser
     protected function downloader(int $maxBytes): RemoteImage
     {
         return new RemoteImage($maxBytes);
-    }
-
-    /** tiptapeditor.upload_path inside the source: no "..", no leading slash, one trailing slash. */
-    private function uploadPath(): string
-    {
-        $setting = (string)$this->modx->getOption('tiptapeditor.upload_path', null, 'assets/uploads/');
-        $parts = array_filter(preg_split('#[\\\\/]+#', $setting) ?: [], fn ($part) => $part !== '' && $part !== '.' && $part !== '..');
-
-        return $parts ? implode('/', $parts) . '/' : '/';
     }
 }
