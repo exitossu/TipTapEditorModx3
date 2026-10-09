@@ -164,7 +164,7 @@ await page.evaluate((selector) => {
 await page.waitForFunction(() => document.querySelector('[data-tiptapeditor-for="ta"] .ProseMirror img:not(.ProseMirror-separator)'), null, { timeout: 15000 }).catch(() => {});
 const uploadedSrc = await page.evaluate(() => document.querySelector('[data-tiptapeditor-for="ta"] .ProseMirror img:not(.ProseMirror-separator)')?.getAttribute('src') || '');
 const uploadedFiles = existsSync(`${site}/${UPLOADS}`) ? readdirSync(`${site}/${UPLOADS}`) : [];
-check('dropped image uploaded through MODX into upload_path', /^\/?assets\/e2e-uploads\/skrinshot-1-[a-z0-9]+\.png$/.test(uploadedSrc)
+check('dropped image uploaded through MODX into upload_path', /^\/?assets\/e2e-uploads\/skrinshot-1(-\d+)?\.png$/.test(uploadedSrc)
     && uploadedFiles.includes(uploadedSrc.split('/').pop()), JSON.stringify({ uploadedSrc, uploadedFiles }));
 await save();
 content = db(resources.assist).content;

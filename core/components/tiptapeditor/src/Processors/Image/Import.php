@@ -14,7 +14,8 @@ use TipTapEditor\Media\RemoteImage;
  * upload (Browser/File/Upload): the file_upload permission, the source's "create" policy, its
  * allowed file types and upload_maxsize. Also needs tiptapeditor.upload_enabled. The folder and
  * the name prefix come from the system settings with their placeholders filled in for the
- * resource (UploadTarget), never a path from the request. Download rules: see Media\RemoteImage.
+ * resource (UploadTarget), never a path from the request. The file keeps its own name unless
+ * the prefix is set, and never replaces an existing file ("-1", "-2" … instead). Download rules: see Media\RemoteImage.
  *
  * Properties: source (Media Source id), url, wctx, resource, parent, tv.
  * Result object: name (file name in the upload folder), path (the upload folder).
@@ -46,7 +47,18 @@ class Import extends Browser
             return $this->failure($this->modx->lexicon('tiptapeditor.' . $error->getMessage()));
         }
 
-        $name = $prefix . RemoteImage::fileName($image['name'], $image['extension']);
+        $folder = trim($path, '/');
+        $files = $this->source->getFilesystem();
+        $name = RemoteImage::uniqueName(
+            RemoteImage::fileName($image['name'], $image['extension'], $prefix),
+            static function (string $name) use ($files, $folder): bool {
+                try {
+                    return $files->fileExists(ltrim($folder . '/' . $name, '/'));
+                } catch (\Throwable) {
+                    return false;
+                }
+            },
+        );
         if (!$this->source->createObject($path, $name, $image['content'])) {
             $errors = $this->source->getErrors();
 

@@ -167,7 +167,7 @@ describe('placeholders in the upload folder and file name prefix', () => {
         ...extra,
     });
 
-    function server(folder) {
+    function server(folder, existing = []) {
         const calls = [];
         vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, request) => {
             const body = request.body;
@@ -179,29 +179,46 @@ describe('placeholders in the upload folder and file name prefix', () => {
             if (action === 'Browser/File/Upload') {
                 return new Response(JSON.stringify({ success: true }));
             }
-            const name = calls.find((c) => c.action === 'Browser/File/Upload').name;
+            const name = calls.find((c) => c.action === 'Browser/File/Upload')?.name;
+            if (!name) {
+                return new Response(JSON.stringify({ success: true, results: existing.map((n) => ({ name: n })) }));
+            }
             return new Response(JSON.stringify({ success: true, results: [{ name, fullRelativeUrl: `${folder.path}${name}` }] }));
         });
         return calls;
     }
 
-    it('asks the server for the folder and prefix of this resource and TV, then uploads there', async () => {
+    it('asks the server for the folder and name of this resource and TV, then uploads there', async () => {
         window.MODx = { config: { connector_url: '/connectors/index.php' } };
-        const calls = server({ path: 'assets/uploads/2026/15/', prefix: '15-' });
-        const upload = createUploadHandler(config({ uploadFilePrefix: '{id}-' }));
+        const calls = server({ path: 'assets/uploads/2026/15/', prefix: '15' }, ['15.png']);
+        const upload = createUploadHandler(config({ uploadFilePrefix: '{id}' }));
         const src = await upload(new File(['x'], 'Фото.png', { type: 'image/png' }));
         expect(calls[0]).toMatchObject({ action: UPLOAD_FOLDER, resource: '15', parent: '3', tv: '7' });
-        expect(calls[1]).toMatchObject({ action: 'Browser/File/Upload', path: 'assets/uploads/2026/15/' });
-        expect(calls[1].name).toMatch(/^15-foto-[a-z0-9]+\.png$/);
-        expect(src).toBe(`assets/uploads/2026/15/${calls[1].name}`);
+        expect(calls[2]).toMatchObject({ action: 'Browser/File/Upload', path: 'assets/uploads/2026/15/', name: '15-1.png' });
+        expect(src).toBe('assets/uploads/2026/15/15-1.png');
+    });
+
+    it('several files at once get different names', async () => {
+        window.MODx = { config: { connector_url: '/connectors/index.php' } };
+        const calls = server({ path: 'u/', prefix: '15' });
+        const upload = createUploadHandler(config({ uploadFilePrefix: '{id}' }));
+        await Promise.all([1, 2, 3].map(() => upload(new File(['x'], 'a.png', { type: 'image/png' })).catch(() => null)));
+        expect(calls.filter((c) => c.action === 'Browser/File/Upload').map((c) => c.name).sort()).toEqual(['15-1.png', '15-2.png', '15.png']);
+    });
+
+    it('an empty prefix keeps the file its own name', async () => {
+        window.MODx = { config: { connector_url: '/connectors/index.php' } };
+        const calls = server({ path: 'assets/uploads/2026/15/', prefix: '' });
+        await createUploadHandler(config())(new File(['x'], 'Фото Отпуска.png', { type: 'image/png' }));
+        expect(calls.find((c) => c.action === 'Browser/File/Upload').name).toBe('foto-otpuska.png');
     });
 
     it('a plain folder needs no extra request', async () => {
         window.MODx = { config: { connector_url: '/connectors/index.php' } };
         const calls = server({ path: 'x/', prefix: '' });
         await createUploadHandler(config({ uploadPath: 'assets/uploads/' }))(new File(['x'], 'a.png', { type: 'image/png' }));
-        expect(calls.map((c) => c.action)).toEqual(['Browser/File/Upload', 'Browser/Directory/GetFiles']);
-        expect(calls[0].path).toBe('assets/uploads/');
+        expect(calls.map((c) => c.action)).toEqual(['Browser/Directory/GetFiles', 'Browser/File/Upload', 'Browser/Directory/GetFiles']);
+        expect(calls[1].path).toBe('assets/uploads/');
     });
 
     it('a new resource is asked to be saved first when the folder uses {id} or {alias}', async () => {

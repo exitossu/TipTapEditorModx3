@@ -5,7 +5,8 @@ import { fileUrl } from './MediaBrowser.js';
  * Upload of dropped and pasted images (tiptapeditor.upload_enabled) through MODX itself: the
  * core processor Browser/File/Upload of the field's Media Source, into tiptapeditor.upload_path
  * inside that source. When upload_path or upload_file_prefix hold placeholders ({id}, {alias},
- * {y} …), the server fills them in for this resource and TV first (Image/UploadFolder). MODX checks the file_upload permission, the source's "create" policy,
+ * {y} …), the server fills them in for this resource and TV first (Image/UploadFolder). The file
+ * keeps its own name unless upload_file_prefix is set; a taken name gets "-1", "-2" …. MODX checks the file_upload permission, the source's "create" policy,
  * the allowed file types and upload_maxsize; the editor never writes files itself.
  * The URL is the one MODX lists for the uploaded file (Browser/Directory/GetFiles), stored the
  * same way as a file chosen in the Media Browser (tiptapeditor.media_url_mode).
@@ -19,16 +20,38 @@ const CYRILLIC = {
     ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya', і: 'i', ї: 'yi', є: 'e', ґ: 'g',
 };
 
-/** A safe, unique file name: latin letters, digits and dashes, plus a short random suffix. */
-export function uploadName(file, random = Math.random().toString(36).slice(2, 8)) {
+/**
+ * File name for an upload: the filled-in tiptapeditor.upload_file_prefix when it is set,
+ * otherwise the file's own name, kept as close as MODX allows (latin letters, digits, dashes:
+ * "Фото Отпуска (1).JPG" → "foto-otpuska-1.jpg"). The extension always stays.
+ */
+export function uploadName(file, prefix = '') {
     const original = String(file?.name || '');
     const dot = original.lastIndexOf('.');
     const ext = (dot > 0 ? original.slice(dot + 1) : IMAGE_EXTENSIONS[file?.type] || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+    const named = String(prefix ?? '').replace(/[^\p{L}\p{N}_.-]+/gu, '-').replace(/\.{2,}/g, '.').replace(/^[.\-_]+|[.\-_]+$/g, '');
+    if (named) {
+        return `${named}.${ext}`;
+    }
     const base = (dot > 0 ? original.slice(0, dot) : original)
         .toLowerCase().replace(/[а-яёіїєґ]/g, (char) => CYRILLIC[char] ?? '')
         .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
         .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'image';
-    return `${base}-${random}.${ext}`;
+    return `${base}.${ext}`;
+}
+
+/** The name itself when it is free, otherwise "name-1.ext", "name-2.ext" … (never overwrite a file). */
+export function uniqueName(name, taken) {
+    if (!taken.has(name)) {
+        return name;
+    }
+    const dot = name.lastIndexOf('.');
+    const [base, ext] = dot > 0 ? [name.slice(0, dot), name.slice(dot)] : [name, ''];
+    let i = 1;
+    while (taken.has(`${base}-${i}${ext}`)) {
+        i++;
+    }
+    return `${base}-${i}${ext}`;
 }
 
 /** Upload directory inside the source: no "..", no leading slash, one trailing slash. */
@@ -92,7 +115,7 @@ async function uploadTarget(config, source, context, t) {
         throw new Error(t('upload_save_first'));
     }
     const data = await connectorRequest(config, UPLOAD_FOLDER, { source, wctx: context, ...targetParams(config) });
-    return { dir: uploadDirectory(data.object?.path), prefix: String(data.object?.prefix || '').replace(/[^\p{L}\p{N}_.-]+/gu, '-') };
+    return { dir: uploadDirectory(data.object?.path), prefix: String(data.object?.prefix || '') };
 }
 
 /**
@@ -110,16 +133,40 @@ export function createUploadHandler(config, t = (key) => key) {
     return async (file) => {
         const connector = managerConnector();
         const { dir, prefix } = await uploadTarget(config, source, context, t);
-        const name = `${prefix}${uploadName(file)}`;
-        const upload = new FormData();
-        upload.set('action', 'Browser/File/Upload');
-        upload.set('source', source);
-        upload.set('path', dir);
-        upload.set('wctx', context);
-        upload.set('file', new File([file], name, { type: file.type }));
-        await call(connector, upload);
-        return listedUrl(config, connector, { source, dir, context, name });
+        const key = `${source}|${dir}`;
+        const reserved = pending.get(key) ?? new Set();
+        pending.set(key, reserved);
+        const listed = await listedNames(connector, { source, dir, context });
+        const taken = new Set([...listed, ...reserved]);
+        const name = uniqueName(uploadName(file, prefix), taken);
+        reserved.add(name);
+        try {
+            const upload = new FormData();
+            upload.set('action', 'Browser/File/Upload');
+            upload.set('source', source);
+            upload.set('path', dir);
+            upload.set('wctx', context);
+            upload.set('file', new File([file], name, { type: file.type }));
+            await call(connector, upload);
+            return await listedUrl(config, connector, { source, dir, context, name });
+        } finally {
+            reserved.delete(name);
+        }
     };
+}
+
+/** Names being uploaded right now, per source and folder: several files at once get different names. */
+const pending = new Map();
+
+/** File names already in a folder of the source (none when the folder does not exist yet). */
+async function listedNames(connector, { source, dir, context }) {
+    try {
+        const list = new URLSearchParams({ action: 'Browser/Directory/GetFiles', source, dir: dir === '/' ? '' : dir, wctx: context });
+        const data = await call(connector, list);
+        return (Array.isArray(data.results) ? data.results : []).map((item) => String(item?.name ?? ''));
+    } catch {
+        return [];
+    }
 }
 
 /**

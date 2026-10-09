@@ -90,8 +90,13 @@ check('an HTML page is not an image', error($loop, $base . '/manager/') === Remo
 check('a missing file is a download error', error($loop, $base . '/assets/e2e/img/none.png') === RemoteImage::ERR_DOWNLOAD);
 check('bigger than the limit is refused while downloading', error(new LoopbackImage(10), $base . '/assets/e2e/img/pic.png') === RemoteImage::ERR_SIZE);
 check('redirect to an internal address is refused', error($loop, $base . '/tiptapeditor-e2e-redirect.php?to=' . rawurlencode('http://10.0.0.1/a.png')) === RemoteImage::ERR_HOST);
-check('safe file names', preg_match('/^foto-otpuska-1-[0-9a-f]{6}\.jpg$/', RemoteImage::fileName('Фото Отпуска (1)', 'jpg'))
-    && preg_match('/^image-[0-9a-f]{6}\.png$/', RemoteImage::fileName('../..', 'png')));
+check('safe file names', RemoteImage::fileName('Фото Отпуска (1)', 'jpg') === 'foto-otpuska-1.jpg'
+    && RemoteImage::fileName('../..', 'png') === 'image.png');
+check('the prefix becomes the file name', RemoteImage::fileName('pic', 'png', '15-') === '15.png'
+    && RemoteImage::fileName('pic', 'png', '../a/b') === 'a-b.png');
+$taken = ['15.png' => true, '15-1.png' => true];
+check('a taken name gets -1, -2 …', RemoteImage::uniqueName('15.png', fn ($n) => isset($taken[$n])) === '15-2.png'
+    && RemoteImage::uniqueName('x.png', fn ($n) => false) === 'x.png');
 
 // The processor with the loopback downloader: stored in upload_path of the Media Source.
 class LoopbackImport extends Import
@@ -109,8 +114,11 @@ $run = function (array $properties) use ($modx) {
 $path = (string)$modx->getOption('tiptapeditor.upload_path');
 $result = $run(['source' => 1, 'url' => $base . '/assets/e2e/img/pic.png', 'wctx' => 'web']);
 $name = $result['object']['name'] ?? '';
-check('Image/Import stores the image in upload_path of the source', !empty($result['success']) && preg_match('/^pic-[0-9a-f]{6}\.png$/', $name)
+check('Image/Import stores the image in upload_path of the source', !empty($result['success']) && preg_match('/^pic(-\d+)?\.png$/', $name)
     && ($result['object']['path'] ?? '') === $path && is_file(getenv('M') . '/' . $path . $name), json_encode($result));
+$again = $run(['source' => 1, 'url' => $base . '/assets/e2e/img/pic.png', 'wctx' => 'web']);
+check('a second import does not replace the first file', !empty($again['success']) && ($again['object']['name'] ?? '') !== $name
+    && is_file(getenv('M') . '/' . $path . $name), json_encode($again));
 
 $modx->setOption('tiptapeditor.upload_enabled', false);
 $result = $run(['source' => 1, 'url' => $base . '/assets/e2e/img/pic.png']);

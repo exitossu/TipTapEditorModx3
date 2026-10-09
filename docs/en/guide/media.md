@@ -74,13 +74,14 @@ For an image with a caption or link, double click it or press **Enter** to open 
 Uploads are off by default. Turn on `tiptapeditor.upload_enabled` to allow them.
 
 - Images are stored in the folder `tiptapeditor.upload_path` (default `assets/uploads/`) **inside the field's Media Source**.
-- Files get a safe name: Cyrillic is transliterated, other characters become dashes, and a short random suffix is added. For example, `Скриншот 1.png` becomes `skrinshot-1-x7k2q9.png`.
+- With an empty `tiptapeditor.upload_file_prefix` a file **keeps its own name**, made safe (Cyrillic is transliterated, other characters become dashes): `Скриншот 1.png` becomes `skrinshot-1.png`. When the prefix is set, **it becomes the file name**; the extension stays.
+- A file is never overwritten: a name already in the folder gets `-1`, `-2` and so on (`skrinshot-1-1.png`, `15-1.png`).
 - The upload goes through MODX's own file upload. The user needs the `file_upload` permission and the source's `create` policy. The Media Source decides which file types are allowed, and `upload_maxsize` applies.
 - Images are never stored as base64 in the content.
 
 ### Placeholders in the folder and file name {#upload-placeholders}
 
-`tiptapeditor.upload_path` and `tiptapeditor.upload_file_prefix` (a prefix for the file name) may hold placeholders. The server fills them in at upload time:
+`tiptapeditor.upload_path` and `tiptapeditor.upload_file_prefix` (the file name) may hold placeholders. The server fills them in at upload time:
 
 | Placeholder | Value |
 |---|---|
@@ -96,7 +97,7 @@ Uploads are off by default. Turn on `tiptapeditor.upload_enabled` to allow them.
 | `{y}` `{m}` `{d}` | year, month, day |
 | `{h}` `{i}` `{s}` | hour, minute, second |
 
-Example: folder `assets/uploads/{y}/{m}/{id}/` and prefix `{id}-` give `assets/uploads/2026/10/15/15-skrinshot-1-x7k2q9.png` for resource 15.
+Example: folder `assets/uploads/{y}/{m}/{id}/` and prefix `{id}` give `assets/uploads/2026/10/15/15.png` for resource 15, then `15-1.png`. The prefix `{alias}-{rand}` gives a name like `about-us-k3x9q2.png`.
 
 - `{id}` and `{alias}` work **once the resource is saved**. In a new, unsaved resource the editor asks to save it first. `{pid}` and `{palias}` work right away.
 - The alias comes from the saved resource: after changing it, save the resource and the next uploads go to the new folder. Files already uploaded are not moved.

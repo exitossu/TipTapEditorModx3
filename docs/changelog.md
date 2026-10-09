@@ -8,6 +8,12 @@ outline: false
 Журнал изменений ведётся на английском, как в пакете.
 :::
 
+## 0.1.0-alpha19
+
+- Uploaded images keep their own file name when tiptapeditor.upload_file_prefix is empty
+  ("Фото 1.jpg" → foto-1.jpg, no random suffix). When it is set, it becomes the file name: {id}
+  gives 15.jpg. A name already taken in the folder gets -1, -2 …, so no file is overwritten.
+
 ## 0.1.0-alpha18
 
 - Placeholders in tiptapeditor.upload_path and the new tiptapeditor.upload_file_prefix: {id}, {pid},

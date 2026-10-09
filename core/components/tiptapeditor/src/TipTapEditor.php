@@ -19,7 +19,7 @@ use TipTapEditor\Config\SettingParser;
 class TipTapEditor
 {
     /** Must match package.json "version" + "modx.release"; _build/build.php enforces it. */
-    public const VERSION = '0.1.0-alpha18';
+    public const VERSION = '0.1.0-alpha19';
 
     public const NAMESPACE = 'tiptapeditor';
 

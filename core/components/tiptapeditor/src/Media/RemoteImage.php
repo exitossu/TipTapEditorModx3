@@ -254,9 +254,16 @@ class RemoteImage
         return ['content' => $body, 'extension' => $types[$info[2]], 'name' => (string)$name];
     }
 
-    /** A safe file name: latin letters, digits and dashes plus a random suffix ("Фото 1" → "foto-1-3fa9c1"). */
-    public static function fileName(string $base, string $extension): string
+    /**
+     * The file name: the filled-in name prefix when set, otherwise the picture's own name made
+     * safe ("Фото 1" → "foto-1"); the extension always stays.
+     */
+    public static function fileName(string $base, string $extension, string $prefix = ''): string
     {
+        $named = trim(preg_replace('/\.{2,}/', '.', preg_replace('/[^\p{L}\p{N}_.-]+/u', '-', $prefix) ?? '') ?? '', '.-_');
+        if ($named !== '') {
+            return $named . '.' . $extension;
+        }
         static $cyrillic = [
             'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e', 'ж' => 'zh', 'з' => 'z',
             'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r',
@@ -267,8 +274,20 @@ class RemoteImage
         $base = strtr(mb_strtolower($base), $cyrillic);
         $base = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($base)) ?? '', '-');
         $base = substr($base, 0, 60) ?: 'image';
-        $random = bin2hex(random_bytes(3));
 
-        return $base . '-' . $random . '.' . $extension;
+        return $base . '.' . $extension;
+    }
+
+    /** The name itself when $exists() says it is free, otherwise "name-1.ext", "name-2.ext" … */
+    public static function uniqueName(string $name, callable $exists): string
+    {
+        $dot = strrpos($name, '.');
+        [$base, $ext] = $dot ? [substr($name, 0, $dot), substr($name, $dot)] : [$name, ''];
+        $candidate = $name;
+        for ($i = 1; $i <= 1000 && $exists($candidate); $i++) {
+            $candidate = $base . '-' . $i . $ext;
+        }
+
+        return $candidate;
     }
 }

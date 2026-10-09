@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorManager } from '../../assets-src/js/editor/EditorManager.js';
 import { fenomItems, modxItems } from '../../assets-src/js/modx/autocomplete.js';
-import { createUploadHandler, uploadDirectory, uploadName } from '../../assets-src/js/modx/upload.js';
+import { createUploadHandler, uniqueName, uploadDirectory, uploadName } from '../../assets-src/js/modx/upload.js';
 import { serialize } from '../../assets-src/js/syntax/serialize.js';
 import { menuItems } from '../../assets-src/js/ui/Menus.js';
 import { countText } from '../../assets-src/js/ui/StatusBar.js';
@@ -183,10 +183,15 @@ describe('status bar', () => {
 });
 
 describe('image upload through MODX', () => {
-    it('safe unique file names and upload folders', () => {
-        expect(uploadName({ name: 'Фото Отпуска (1).JPG', type: 'image/jpeg' }, 'abc123')).toBe('foto-otpuska-1-abc123.jpg');
-        expect(uploadName({ name: 'Café menu.png', type: 'image/png' }, 'abc123')).toBe('cafe-menu-abc123.png');
-        expect(uploadName({ name: '', type: 'image/webp' }, 'abc123')).toBe('image-abc123.webp');
+    it('safe file names, the prefix as the name, free names and upload folders', () => {
+        expect(uploadName({ name: 'Фото Отпуска (1).JPG', type: 'image/jpeg' })).toBe('foto-otpuska-1.jpg');
+        expect(uploadName({ name: 'Café menu.png', type: 'image/png' })).toBe('cafe-menu.png');
+        expect(uploadName({ name: '', type: 'image/webp' })).toBe('image.webp');
+        expect(uploadName({ name: 'Фото.JPG', type: 'image/jpeg' }, '15')).toBe('15.jpg');
+        expect(uploadName({ name: 'a.png', type: 'image/png' }, '15-')).toBe('15.png');
+        expect(uploadName({ name: 'a.png', type: 'image/png' }, '../x/y')).toBe('x-y.png');
+        expect(uniqueName('15.png', new Set())).toBe('15.png');
+        expect(uniqueName('15.png', new Set(['15.png', '15-1.png']))).toBe('15-2.png');
         expect(uploadDirectory('assets/uploads')).toBe('assets/uploads/');
         expect(uploadDirectory('/../assets//./img/../x/')).toBe('assets/img/x/');
         expect(uploadDirectory('')).toBe('/');
@@ -208,18 +213,23 @@ describe('image upload through MODX', () => {
             if (action === 'Browser/File/Upload') {
                 return new Response(JSON.stringify({ success: true }));
             }
-            const name = fetch.mock.calls[0][1].body.get('file').name;
+            const name = fetch.mock.calls.find(([, r]) => r.body.get('action') === 'Browser/File/Upload')?.[1].body.get('file').name;
+            if (!name) {
+                return new Response(JSON.stringify({ success: true, results: [{ name: 'shot.png' }] }));
+            }
             return new Response(JSON.stringify({ success: true, results: [{ name, fullRelativeUrl: `assets/uploads/${name}` }] }));
         });
         const upload = createUploadHandler({ uploadEnabled: true, uploadPath: 'assets/uploads/', mediaSource: { id: 2 }, resource: { context: 'web' } });
         const url = await upload(new File(['x'], 'shot.png', { type: 'image/png' }));
-        expect(url).toMatch(/^assets\/uploads\/shot-[a-z0-9]+\.png$/);
-        const sent = fetch.mock.calls[0][1].body;
-        expect(fetch.mock.calls[0][0]).toBe('/connectors/index.php');
+        // shot.png is already in the folder: the new file does not replace it.
+        expect(url).toBe('assets/uploads/shot-1.png');
+        expect(fetch.mock.calls[0][1].body.get('action')).toBe('Browser/Directory/GetFiles');
+        const sent = fetch.mock.calls[1][1].body;
+        expect(fetch.mock.calls[1][0]).toBe('/connectors/index.php');
         expect(sent.get('source')).toBe('2');
         expect(sent.get('path')).toBe('assets/uploads/');
         expect(sent.get('HTTP_MODAUTH')).toBe('tok');
-        expect(fetch.mock.calls[1][1].body.get('action')).toBe('Browser/Directory/GetFiles');
+        expect(fetch.mock.calls[2][1].body.get('action')).toBe('Browser/Directory/GetFiles');
 
         // A file type the source does not allow is skipped by MODX without an error.
         fetch.mockImplementation(async () => new Response(JSON.stringify({ success: true, results: [] })));
