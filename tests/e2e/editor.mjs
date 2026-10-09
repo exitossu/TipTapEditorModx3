@@ -162,10 +162,13 @@ await page.keyboard.press('End');
 await page.keyboard.press('Shift+Home');
 await toolbar.locator('[data-tiptapeditor-item="italic"]').click();
 check('toolbar button shows active state', await toolbar.locator('[data-tiptapeditor-item="italic"]').getAttribute('aria-pressed') === 'true');
-const saveRequest = page.waitForRequest((r) => r.url().includes('connectors') && (r.postData() || '').includes('Update'), { timeout: 5000 }).then(() => true).catch(() => false);
+const isSave = (r) => r.url().includes('connectors') && (r.postData() || '').includes('Update');
+const saveRequest = page.waitForRequest(isSave, { timeout: 5000 }).then(() => true).catch(() => false);
+// The content is read from the database only once MODX has answered the save.
+const saveResponse = page.waitForResponse((r) => isSave(r.request()), { timeout: 15000 }).catch(() => null);
 await page.keyboard.press('Control+s');
 check('Ctrl+S saves through MODX', await saveRequest);
-await page.waitForTimeout(800);
+await saveResponse;
 check('toolbar formatting saved', /<h2><em>Title[^<]*<\/em><\/h2>/.test(db(resources.plain).content), db(resources.plain).content.slice(0, 80));
 
 // 7. Public API.

@@ -4,6 +4,18 @@ outline: false
 
 # Changelog
 
+## 0.1.0-alpha20
+
+- Gallery templates are files: one .html file per template in the new setting
+  tiptapeditor.gallery_templates_path (default {core_path}elements/tiptapeditor/gallery/), the
+  outer markup, a &lt;!-- item --> line and the markup of one picture. A new file is a new template.
+  Installation adds grid.html, slider.html and images.html once; updates and uninstall never
+  overwrite or delete files there. tiptapeditor.gallery_templates (JSON) still works.
+- Galleries no longer carry data-tiptapeditor-gallery: the editor knows a gallery by the tag and
+  classes of its outer element, so every template needs a class there. A gallery keeps its markup
+  until it is edited in the gallery dialog. Galleries with the old attribute still open; the
+  attribute is dropped when they are edited.
+
 ## 0.1.0-alpha19
 
 - Uploaded images keep their own file name when tiptapeditor.upload_file_prefix is empty

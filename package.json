@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "modx": {
-    "release": "alpha19"
+    "release": "alpha20"
   },
   "engines": {
     "node": ">=20.19.0"

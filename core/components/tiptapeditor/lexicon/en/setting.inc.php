@@ -98,9 +98,11 @@ $_lang['setting_tiptapeditor.upload_path_desc'] = 'Folder in the field\'s Media 
 $_lang['setting_tiptapeditor.enable_gallery'] = 'Galleries';
 $_lang['setting_tiptapeditor.enable_gallery_desc'] = 'Enable the gallery button: several images with a template (grid, slider, …).';
 $_lang['setting_tiptapeditor.gallery_template'] = 'Gallery template';
-$_lang['setting_tiptapeditor.gallery_template_desc'] = 'Template of new galleries: grid, slider (Swiper markup), images, or a name from tiptapeditor.gallery_templates.';
+$_lang['setting_tiptapeditor.gallery_template_desc'] = 'Template of new galleries: grid, slider (Swiper markup), images, or the name of your own template (a file in the gallery template folder or a key of tiptapeditor.gallery_templates).';
 $_lang['setting_tiptapeditor.gallery_templates'] = 'Own gallery templates';
-$_lang['setting_tiptapeditor.gallery_templates_desc'] = 'JSON with more templates, e.g. {"cards": {"label": "Cards", "wrapper": "<ul class=\\"cards\\">{items}</ul>", "item": "<li>{image}{caption}</li>"}}. {items} = the pictures, {image} = the image (with its link when "open larger" is on), {caption} = <figcaption> with the caption. Scripts and on* attributes are removed.';
+$_lang['setting_tiptapeditor.gallery_templates_desc'] = 'JSON with more templates, e.g. {"cards": {"label": "Cards", "wrapper": "<ul class=\\"cards\\">{items}</ul>", "item": "<li>{image}{caption}</li>"}}. {items} = the pictures, {image} = the image (with its link when "open larger" is on), {caption} = <figcaption> with the caption. The outer element needs a class. Easier to edit: the template files (tiptapeditor.gallery_templates_path). Scripts and on* attributes are removed.';
+$_lang['setting_tiptapeditor.gallery_templates_path'] = 'Gallery template folder';
+$_lang['setting_tiptapeditor.gallery_templates_path_desc'] = 'Folder with gallery template files, one .html file per template (grid.html, slider.html …); the file name is the template name. Inside core_path or base_path. Installation adds the default templates once; the package never overwrites or deletes files here, so edited templates survive updates.';
 $_lang['setting_tiptapeditor.lightbox'] = 'Open images larger on click';
 $_lang['setting_tiptapeditor.lightbox_desc'] = 'New images and galleries get a link to the image around the picture (<figure><a href="…"><img></a></figure>) for a lightbox script on the site. Can be switched per image and gallery in the dialog.';
 $_lang['setting_tiptapeditor.lightbox_attribute'] = 'Lightbox attribute';

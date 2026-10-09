@@ -4,7 +4,7 @@ A rich text editor for the MODX 3 manager built on [Tiptap 3](https://tiptap.dev
 It registers as **TipTapEditor** in the `which_editor` system setting and replaces the resource
 content field and RichText template variables.
 
-> Status: **0.1.0-alpha19, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
+> Status: **0.1.0-alpha20, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
 > Documentation: https://exitossu.github.io/TipTapEditorModx3/ (sources in `docs/`, `npm run docs:dev`).
 
 ## Requirements
@@ -66,7 +66,7 @@ The package is written to `core/packages/tiptapeditor-<version>.transport.zip`.
 - **From TiptapRTE (0.1.0-alpha15 and older)**: the extra was renamed to TipTapEditor (namespace,
   settings `tiptapeditor.*`, folders, plugin). Uninstall the old TiptapRTE package first, then
   install TipTapEditor and set your settings again under the new prefix. Galleries saved with
-  `data-tiptaprte-gallery` still open as galleries and get the new attribute when saved again.
+  `data-tiptaprte-gallery` still open as galleries; the attribute is dropped when they are edited.
 - **Uninstall** removes files, plugin, settings and namespace. Wherever `which_editor` pointed to TipTapEditor (system, context,
   user group or user settings) it is reset to empty (plain textarea). Resource content and TV values are never modified.
 
@@ -77,7 +77,7 @@ All settings use the `tiptapeditor.` prefix and have English and Russian descrip
 | Area | Settings |
 |---|---|
 | Interface | `toolbar`, `profiles`, `default_profile`, `content_profile`, `tv_profiles`, `heading_levels`, `bubble_menu`, `floating_menu`, `slash_commands`, `statusbar`, `sticky_toolbar`, `enable_fullscreen`, `min_height`, `max_height`, `default_height`, `autogrow`, `content_css` |
-| Content | `enable_tables`, `enable_images`, `enable_gallery`, `gallery_template`, `gallery_templates`, `lightbox`, `lightbox_attribute`, `lightbox_label`, `enable_iframe`, `iframe_allowed_attributes`, `iframe_allowed_hosts`, `paste_as_text`, `image_classes`, `link_classes`, `paragraph_classes`, `table_classes`, `preserve_style_attribute` |
+| Content | `enable_tables`, `enable_images`, `enable_gallery`, `gallery_template`, `gallery_templates`, `gallery_templates_path`, `lightbox`, `lightbox_attribute`, `lightbox_label`, `enable_iframe`, `iframe_allowed_attributes`, `iframe_allowed_hosts`, `paste_as_text`, `image_classes`, `link_classes`, `paragraph_classes`, `table_classes`, `preserve_style_attribute` |
 | MODX integration | `protect_modx_syntax`, `protect_fenom_syntax`, `fenom_tags`, `modx_autocomplete`, `fenom_autocomplete`, `links_across_contexts`, `resource_link_format`, `media_source`, `media_url_mode`, `upload_enabled`, `upload_path` |
 | System | `external_config`, `debug` |
 
@@ -534,10 +534,13 @@ upload (`Image/UploadFolder`, `Media\UploadPath`): `{id}` `{pid}` `{alias}` `{pa
   caption, choose the template and "open larger". In the editor a gallery is a card with
   thumbnails; double click or Enter edits it.
 - **Templates:** `grid` (figures in a `div.gallery`), `slider` (Swiper markup), `images` (only the
-  pictures); `gallery_template` is the default. Own templates in `gallery_templates` (JSON):
-  `{"cards": {"label": "Cards", "wrapper": "<ul class=\"cards\">{items}</ul>", "item": "<li>{image}{caption}</li>"}}`.
-  The outer element carries `data-tiptapeditor-gallery="<template>"` so the gallery can be edited
-  again. Scripts and `on*` attributes in templates are removed.
+  pictures); `gallery_template` is the default. Each template is a file in `gallery_templates_path`
+  (default `core/elements/tiptapeditor/gallery/`, `grid.html`, `slider.html` …): the outer markup
+  with `{items}`, a `<!-- item -->` line, then one picture with `{image}` and `{caption}`. Install
+  adds the default files once; updates never overwrite or delete them. More templates also in
+  `gallery_templates` (JSON). A gallery is known by the tag and classes of its outer element (every
+  template needs a class there), so the content has no extra attribute; it keeps its markup until
+  it is edited in the dialog. Scripts and `on*` attributes in templates are removed.
 
 ## Saving
 

@@ -13,12 +13,25 @@ const settings = (...pairs) => php('./set-system-settings.php', ...pairs);
 settings('which_editor', 'TipTapEditor', 'use_editor', '1', 'tiptapeditor.toolbar', 'bold | image gallery | source',
     'tiptapeditor.lightbox', '1', 'tiptapeditor.lightbox_attribute', 'data-fancybox', 'tiptapeditor.gallery_template', 'slider');
 const { resources, fixtures } = JSON.parse(php('./fixtures-setup.php'));
+// The gallery markup as saved, without the line breaks of the template files.
+const compact = (html) => html.replace(/>\s+</g, '><');
 
 let failed = 0;
 const check = (name, ok, details = '') => {
     console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${details && !ok ? ` -> ${details}` : ''}`);
     failed += ok ? 0 : 1;
 };
+
+// Server side: template files and the install resolver.
+let server = '';
+try {
+    server = php('./gallery-templates.php');
+} catch (error) {
+    server = error.stdout?.toString() || String(error);
+}
+for (const line of server.split('\n').filter((l) => /^(ok |FAIL)/.test(l))) {
+    check(line.replace(/^(ok {2}|FAIL) /, ''), line.startsWith('ok'));
+}
 
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined });
 const errors = [];
@@ -95,9 +108,11 @@ await dialog.locator('.tiptapeditor-dialog__button--primary').click();
 check('gallery card shows in the editor', /2 images/.test(await page.locator(`${root} .tiptapeditor__gallery-label`).textContent()));
 await save();
 content = db(resources.gallery).content;
+check('a new gallery has no template marker', !/data-tiptap(editor|rte)-gallery/.test(content), content);
+content = compact(content);
 const group = /data-fancybox="(gallery-[a-z0-9]+)"/.exec(content)?.[1] || '';
 check('gallery saved with the slider template, order, captions and one lightbox group',
-    content === '<p>Gallery below.</p><div class="swiper gallery-slider" data-tiptapeditor-gallery="slider"><div class="swiper-wrapper">'
+    content === '<p>Gallery below.</p><div class="swiper gallery-slider"><div class="swiper-wrapper">'
     + `<div class="swiper-slide"><figure><a href="assets/e2e/img/pic2.png" data-fancybox="${group}" aria-label="Open image:"><img src="assets/e2e/img/pic2.png" alt=""></a></figure></div>`
     + `<div class="swiper-slide"><figure><a href="assets/e2e/img/pic.png" data-fancybox="${group}" aria-label="Open image: First"><img src="assets/e2e/img/pic.png" alt="First"></a><figcaption>First caption</figcaption></figure></div>`
     + '</div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div>', content);
@@ -111,8 +126,8 @@ await field('Template').selectOption('grid');
 await field('Open larger on click').uncheck();
 await dialog.locator('.tiptapeditor-dialog__button--primary').click();
 await save();
-content = db(resources.gallery).content;
-check('template switched to grid without links', content === '<p>Gallery below.</p><div class="gallery" data-tiptapeditor-gallery="grid">'
+content = compact(db(resources.gallery).content);
+check('template switched to grid without links', content === '<p>Gallery below.</p><div class="gallery">'
     + '<figure class="gallery__item"><img src="assets/e2e/img/pic2.png" alt=""></figure>'
     + '<figure class="gallery__item"><img src="assets/e2e/img/pic.png" alt="First"><figcaption>First caption</figcaption></figure></div>', content);
 check('no gallery image is loaded from the manager directory', !errors.some((e) => /404/.test(e)));

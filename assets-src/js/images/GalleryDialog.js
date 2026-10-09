@@ -43,7 +43,7 @@ export function openGalleryDialog(editor, context) {
     const { t, config } = context;
     const target = selectedGallery(editor);
     const attrs = target?.node.attrs || {};
-    const { templates } = galleryTemplates(config.galleryTemplates);
+    const { templates } = galleryTemplates(config.galleryTemplates, config.galleryTemplateFiles);
     const items = (attrs.items || []).map((item) => ({ ...item }));
 
     const dialog = new Dialog({ title: t(target ? 'gallery_edit' : 'gallery_insert'), t, className: 'tiptapeditor-dialog--gallery' });
@@ -242,6 +242,8 @@ export function openGalleryDialog(editor, context) {
             group: attrs.group || (lightbox.checked ? newGroup() : null),
             // Another template brings its own outer element.
             wrapper: template.value === attrs.template ? (attrs.wrapper ?? null) : null,
+            // Edited: written with the template from now on.
+            source: null,
         };
         dialog.close();
         if (target) {

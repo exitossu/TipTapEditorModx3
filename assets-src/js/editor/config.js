@@ -60,6 +60,8 @@ export const defaults = Object.freeze({
     // Galleries: the template for new galleries and more templates (JSON, images/gallery.js).
     galleryTemplate: 'grid',
     galleryTemplates: '',
+    // Templates from the files of tiptapeditor.gallery_templates_path, read on the server.
+    galleryTemplateFiles: {},
     // Tables: class presets (tiptapeditor.table_classes) offered in the table dialog.
     tableClasses: '',
     // Runtime extension point: async (file, { editor }) => url for dropped/pasted images.

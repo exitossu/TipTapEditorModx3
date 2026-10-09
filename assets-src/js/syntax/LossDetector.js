@@ -18,8 +18,11 @@ const EQUIVALENT_TAGS = {
 
 // Elements whose presence Tiptap guarantees by itself or which are pure wrappers.
 const IGNORED_TAGS = new Set(['html', 'head', 'body', 'tbody']);
-// Attributes the editor writes under a new name (the extra was called TiptapRTE before 0.1.0-alpha16).
-const RENAMED_ATTRIBUTES = { 'data-tiptaprte-gallery': 'data-tiptapeditor-gallery' };
+/**
+ * The editor's own old gallery marker (data-tiptapeditor-gallery, earlier data-tiptaprte-gallery):
+ * a gallery is known by its template now, and the marker is not written again.
+ */
+const DROPPED_ATTRIBUTES = new Set(['data-tiptapeditor-gallery', 'data-tiptaprte-gallery']);
 
 function canonicalTag(el) {
     const tag = el.localName;
@@ -98,8 +101,8 @@ function inventory(body, { ignoreStyle = false } = {}) {
                 for (const declaration of styleKeys(attr.value)) {
                     add(attributes, `${tag}[style ${declaration}]`);
                 }
-            } else {
-                add(attributes, `${tag}[${RENAMED_ATTRIBUTES[attr.name] || attr.name}="${attr.value}"]`);
+            } else if (!DROPPED_ATTRIBUTES.has(attr.name)) {
+                add(attributes, `${tag}[${attr.name}="${attr.value}"]`);
             }
         }
     }

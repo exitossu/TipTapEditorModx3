@@ -9,6 +9,7 @@ use MODX\Revolution\Sources\modMediaSource;
 use MODX\Revolution\modX;
 use TipTapEditor\Config\ExternalConfig;
 use TipTapEditor\Config\SettingParser;
+use TipTapEditor\Gallery\TemplateFiles;
 
 /**
  * TipTapEditor service: paths, URLs, version, options and editor activation rules.
@@ -19,7 +20,7 @@ use TipTapEditor\Config\SettingParser;
 class TipTapEditor
 {
     /** Must match package.json "version" + "modx.release"; _build/build.php enforces it. */
-    public const VERSION = '0.1.0-alpha19';
+    public const VERSION = '0.1.0-alpha20';
 
     public const NAMESPACE = 'tiptapeditor';
 
@@ -176,6 +177,7 @@ class TipTapEditor
             'lightboxLabel' => (string)$this->getOption('lightbox_label', [], ''),
             'galleryTemplate' => (string)$this->getOption('gallery_template', [], 'grid'),
             'galleryTemplates' => (string)$this->getOption('gallery_templates', [], ''),
+            'galleryTemplateFiles' => (object)$this->getGalleryTemplateFiles(),
             'tableClasses' => (string)$this->getOption('table_classes', [], ''),
             'paragraphClasses' => (string)$this->getOption('paragraph_classes', [], ''),
             'preserveStyleAttribute' => $this->getBoolOption('preserve_style_attribute', [], true),
@@ -232,6 +234,34 @@ class TipTapEditor
         }
 
         return $result;
+    }
+
+    /**
+     * Gallery templates from the files in tiptapeditor.gallery_templates_path (Gallery\TemplateFiles).
+     * A file without its own label gets the lexicon name of a built-in template ("grid" → "Grid"),
+     * otherwise its file name.
+     *
+     * @return array<string, array{label: string, wrapper: string, item: string}>
+     */
+    public function getGalleryTemplateFiles(): array
+    {
+        $placeholders = [
+            '{core_path}' => (string)$this->modx->getOption('core_path', null, MODX_CORE_PATH),
+            '{base_path}' => (string)$this->modx->getOption('base_path', null, MODX_BASE_PATH),
+            '{assets_path}' => (string)$this->modx->getOption('assets_path', null, MODX_ASSETS_PATH),
+        ];
+        $files = new TemplateFiles([$placeholders['{core_path}'], $placeholders['{base_path}']], $placeholders);
+        $this->loadLexicon();
+        $templates = $files->load(
+            (string)$this->getOption('gallery_templates_path', [], TemplateFiles::DEFAULT_PATH),
+            fn (string $name): string => $this->modx->lexicon->exists(self::NAMESPACE . '.gallery_template_' . $name)
+                ? 'gallery_template_' . $name : $name,
+        );
+        foreach ($files->errors as $error) {
+            $this->modx->log(modX::LOG_LEVEL_WARN, $error, '', 'TipTapEditor');
+        }
+
+        return $templates;
     }
 
     /**

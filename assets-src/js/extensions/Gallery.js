@@ -1,6 +1,6 @@
 import { Node } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
-import { GALLERY_SELECTOR, parseGallery, renderGallery } from '../images/gallery.js';
+import { gallerySelector, parseGallery, renderGallery } from '../images/gallery.js';
 import { previewUrl } from '../modx/MediaBrowser.js';
 import { createElement } from '../utils/dom.js';
 
@@ -10,8 +10,9 @@ let inert = null;
 /**
  * Image gallery as one block (images/gallery.js has the markup and templates).
  *
- * Only galleries made by the editor (data-tiptapeditor-gallery on the outer element) become this
- * node; anything else stays what it was. In the manager it is a card with thumbnails; double
+ * An element with the outer tag and classes of a gallery template (div.gallery, div.swiper.gallery-slider
+ * …) becomes this node when everything in it fits a gallery (images, the lightbox link, plain
+ * captions); anything else stays what it was. In the manager it is a card with thumbnails; double
  * click or Enter opens the gallery dialog. Unchanged galleries are saved as they were (the
  * field is only rewritten when the document changes).
  */
@@ -40,14 +41,15 @@ export const Gallery = Node.create({
             lightbox: { default: false, rendered: false },
             group: { default: null, rendered: false },
             wrapper: { default: null, rendered: false },
+            source: { default: null, rendered: false },
         };
     },
 
     parseHTML() {
         return [{
-            tag: GALLERY_SELECTOR,
+            tag: gallerySelector(this.options.templates),
             priority: 70,
-            getAttrs: (element) => parseGallery(element, { lightboxAttribute: this.options.lightboxAttribute }),
+            getAttrs: (element) => parseGallery(element, { lightboxAttribute: this.options.lightboxAttribute, templates: this.options.templates }),
         }];
     },
 

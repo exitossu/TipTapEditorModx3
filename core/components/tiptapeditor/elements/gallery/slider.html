@@ -1,0 +1,18 @@
+<!--
+  Gallery template "slider" (Слайдер, Swiper markup).
+  Edit freely: this file is yours and is never overwritten by an update of TipTapEditor.
+  Before "item": the outer element of the gallery, {items} is where the slides go.
+  The outer element needs a class: the editor knows the gallery by it.
+  To rename it in the dialog, add a comment starting with "label:", for example "label: My grid".
+  After "item": one slide. {image} is the picture (with the "open larger" link when it is on),
+  {caption} is <figcaption> with the caption (leave it out to hide the caption field).
+  The Swiper script and styles are connected on the site: the editor only writes the markup.
+-->
+<div class="swiper gallery-slider">
+    <div class="swiper-wrapper">{items}</div>
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+</div>
+<!-- item -->
+<div class="swiper-slide"><figure>{image}{caption}</figure></div>

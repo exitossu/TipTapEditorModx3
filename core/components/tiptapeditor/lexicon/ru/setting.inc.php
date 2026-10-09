@@ -98,9 +98,11 @@ $_lang['setting_tiptapeditor.upload_path_desc'] = 'Папка в источни�
 $_lang['setting_tiptapeditor.enable_gallery'] = 'Галереи';
 $_lang['setting_tiptapeditor.enable_gallery_desc'] = 'Включить кнопку «Галерея»: несколько изображений по шаблону (сетка, слайдер…).';
 $_lang['setting_tiptapeditor.gallery_template'] = 'Шаблон галереи';
-$_lang['setting_tiptapeditor.gallery_template_desc'] = 'Шаблон новых галерей: grid (сетка), slider (разметка Swiper), images (только изображения) или имя из tiptapeditor.gallery_templates.';
+$_lang['setting_tiptapeditor.gallery_template_desc'] = 'Шаблон новых галерей: grid (сетка), slider (разметка Swiper), images (только изображения) или имя своего шаблона (файл в папке шаблонов галереи или ключ из tiptapeditor.gallery_templates).';
 $_lang['setting_tiptapeditor.gallery_templates'] = 'Свои шаблоны галерей';
-$_lang['setting_tiptapeditor.gallery_templates_desc'] = 'JSON с дополнительными шаблонами, например {"cards": {"label": "Карточки", "wrapper": "<ul class=\\"cards\\">{items}</ul>", "item": "<li>{image}{caption}</li>"}}. {items} — изображения, {image} — изображение (со ссылкой, если включено увеличение), {caption} — <figcaption> с подписью. Скрипты и атрибуты on* удаляются.';
+$_lang['setting_tiptapeditor.gallery_templates_desc'] = 'JSON с дополнительными шаблонами, например {"cards": {"label": "Карточки", "wrapper": "<ul class=\\"cards\\">{items}</ul>", "item": "<li>{image}{caption}</li>"}}. {items} — изображения, {image} — изображение (со ссылкой, если включено увеличение), {caption} — <figcaption> с подписью. У внешнего элемента должен быть класс. Удобнее править файлы шаблонов (tiptapeditor.gallery_templates_path). Скрипты и атрибуты on* удаляются.';
+$_lang['setting_tiptapeditor.gallery_templates_path'] = 'Папка шаблонов галереи';
+$_lang['setting_tiptapeditor.gallery_templates_path_desc'] = 'Папка с файлами шаблонов галереи, один .html файл на шаблон (grid.html, slider.html …); имя файла — имя шаблона. Внутри core_path или base_path. Установка один раз кладёт сюда стандартные шаблоны; пакет никогда не перезаписывает и не удаляет файлы в этой папке, поэтому ваши правки сохраняются при обновлении.';
 $_lang['setting_tiptapeditor.lightbox'] = 'Увеличение изображений по клику';
 $_lang['setting_tiptapeditor.lightbox_desc'] = 'Новые изображения и галереи получают ссылку на изображение вокруг картинки (<figure><a href="…"><img></a></figure>) для скрипта-лайтбокса на сайте. В диалоге включается и выключается для каждой картинки и галереи.';
 $_lang['setting_tiptapeditor.lightbox_attribute'] = 'Атрибут лайтбокса';
