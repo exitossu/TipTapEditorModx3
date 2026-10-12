@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorManager } from '../../assets-src/js/editor/EditorManager.js';
+import { embedItem, isVideoFile } from '../../assets-src/js/images/GalleryDialog.js';
 import { galleryTemplates, lightboxAttribute, parseGallery, renderGallery } from '../../assets-src/js/images/gallery.js';
 import { serialize } from '../../assets-src/js/syntax/serialize.js';
 import { createLogger } from '../../assets-src/js/utils/logger.js';
@@ -162,7 +163,7 @@ describe('gallery', () => {
         const html = '<p>Text</p><div class="gallery" data-gallery="grid" id="g1"><figure class="gallery__item"><img src="img/1.jpg" alt="One"><figcaption>First</figcaption></figure></div>';
         start(html);
         expect(types()).toEqual(['paragraph', 'text', 'gallery']);
-        expect(instance.root.querySelector('.tiptapeditor__gallery-label').textContent).toContain('1 images');
+        expect(instance.root.querySelector('.tiptapeditor__gallery-label').textContent).toContain('1 items');
         expect(serialize(instance.editor)).toBe(html);
         expect(document.getElementById('ta').value).toBe(html);
     });
@@ -238,12 +239,103 @@ describe('gallery', () => {
         expect(n).toBe(1);
     });
 
+    const IFRAME = { allowedAttributes: '', allowedHosts: '' };
+    const MIXED = '<div class="gallery" data-gallery="grid">'
+        + '<figure class="gallery__item"><a href="img/1.jpg" data-fancybox="g1" aria-label="Open: One"><img src="img/1.jpg" alt="One"></a></figure>'
+        + '<figure class="gallery__item"><video src="video/sea.mp4" title="Sea" controls="" preload="metadata" playsinline=""></video><figcaption>Sea</figcaption></figure>'
+        + '<figure class="gallery__item"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Clip" allow="autoplay; encrypted-media" allowfullscreen="" loading="lazy"></iframe></figure>'
+        + '</div>';
+
+    it('videos: a file in <video>, a service in <iframe>, only pictures get the lightbox link', () => {
+        const box = document.createElement('div');
+        box.innerHTML = MIXED;
+        const parsed = parseGallery(box.firstChild, { lightboxAttribute: 'data-fancybox', iframe: IFRAME });
+        expect(parsed.items.map((i) => [i.type || 'image', i.src, i.caption])).toEqual([
+            ['image', 'img/1.jpg', ''], ['video', 'video/sea.mp4', 'Sea'], ['embed', 'https://www.youtube.com/embed/dQw4w9WgXcQ', ''],
+        ]);
+        expect(parsed.lightbox).toBe(true);
+        const el = renderGallery(document, parsed, { templates, lightboxAttribute: 'data-fancybox', lightboxLabel: 'Open: {alt}', iframe: IFRAME });
+        expect(el.outerHTML).toBe(MIXED);
+    });
+
+    it('a video of a service needs iframes on and an allowed host, otherwise the gallery stays an HTML block', () => {
+        const box = document.createElement('div');
+        box.innerHTML = MIXED;
+        expect(parseGallery(box.firstChild, { lightboxAttribute: 'data-fancybox', iframe: null })).toBe(false);
+        expect(parseGallery(box.firstChild, { lightboxAttribute: 'data-fancybox', iframe: { allowedHosts: 'vk.com' } })).toBe(false);
+        box.innerHTML = MIXED.replace('loading="lazy"', 'onload="x()"');
+        expect(parseGallery(box.firstChild, { lightboxAttribute: 'data-fancybox', iframe: IFRAME })).toBe(false);
+        box.innerHTML = '<div data-gallery="grid"><video src="v.mp4"><source src="v.webm"></video></div>';
+        expect(parseGallery(box.firstChild, { iframe: IFRAME })).toBe(false);
+    });
+
+    it('an iframe of a template is removed, the iframe of a video is kept', () => {
+        const own = galleryTemplates({ cards: { wrapper: '<ul class="cards"><iframe src="https://evil.test/"></iframe>{items}</ul>', item: '<li>{image}</li>' } }).templates;
+        const el = renderGallery(document, { template: 'cards', items: [{ type: 'embed', src: 'https://vk.com/video_ext.php?oid=1&id=2', extra: {} }] },
+            { templates: own, iframe: IFRAME });
+        expect(el.outerHTML).toBe('<ul class="cards" data-gallery="cards"><li><iframe src="https://vk.com/video_ext.php?oid=1&amp;id=2"></iframe></li></ul>');
+        // Iframes off: the video is left out.
+        expect(renderGallery(document, { template: 'cards', items: [{ type: 'embed', src: 'https://vk.com/x' }] }, { templates: own }).outerHTML)
+            .toBe('<ul class="cards" data-gallery="cards"><li></li></ul>');
+    });
+
+    it('opens a gallery with videos in the editor and saves it unchanged', () => {
+        start(MIXED, { lightboxAttribute: 'data-fancybox', lightboxLabel: 'Open: {alt}' });
+        expect(types()).toEqual(['gallery']);
+        expect(instance.root.querySelectorAll('.tiptapeditor__gallery-thumb--video')).toHaveLength(2);
+        expect(instance.root.querySelector('iframe, video')).toBeNull();
+        expect(serialize(instance.editor)).toBe(MIXED);
+        expect(textarea()).toBe(MIXED);
+    });
+
+    it('a caption is found without a <figure> around the picture', () => {
+        const box = document.createElement('div');
+        box.innerHTML = '<section data-gallery="grid"><div class="photo"><img src="a.jpg" alt=""><figcaption>A</figcaption></div><div class="photo"><img src="b.jpg" alt=""></div></section>';
+        expect(parseGallery(box.firstChild, {}).items.map((i) => i.caption)).toEqual(['A', '']);
+    });
+
+    it('addresses: video files by extension, video pages and iframe code as embeds', () => {
+        expect(isVideoFile('assets/v/sea.MP4?x=1')).toBe(true);
+        expect(isVideoFile('assets/v/sea.jpg')).toBe(false);
+        expect(embedItem('https://vk.com/video-1_2', IFRAME)).toMatchObject({ type: 'embed', src: 'https://vk.com/video_ext.php?oid=-1&id=2&hd=2' });
+        expect(embedItem('<iframe src="https://rutube.ru/play/embed/1" width="640" onload="x()" title="T"></iframe>', IFRAME))
+            .toEqual({ type: 'embed', src: 'https://rutube.ru/play/embed/1', title: 'T', width: '640', height: null, extra: {}, caption: '' });
+        expect(embedItem('https://example.com/picture.jpg', IFRAME)).toBeNull();
+        expect(() => embedItem('https://youtu.be/dQw4w9WgXcQ', null, (key) => key)).toThrow('gallery_embeds_off');
+        expect(() => embedItem('https://youtu.be/dQw4w9WgXcQ', { allowedHosts: 'vk.com' }, (key) => key)).toThrow('embed_host_not_allowed');
+    });
+
+    it('gallery dialog: a video page, a video file by address and an uploaded video', async () => {
+        start('<p>Text</p>', { mediaSource: null, uploadHandler: async (file) => `assets/uploads/${file.name}` });
+        instance.editor.commands.setTextSelection(5);
+        await frame();
+        button('gallery').click();
+        const url = dialog().querySelector('input[aria-label="Image or video address"]');
+        const add = [...dialog().querySelectorAll('button')].find((b) => b.textContent === 'Add');
+        url.value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        add.click();
+        url.value = 'https://cdn.example.com/clip.webm';
+        add.click();
+        pickFiles([new File(['x'], 'sea.mp4', { type: 'video/mp4' })]);
+        [...dialog().querySelectorAll('button')].find((b) => b.textContent === 'Upload from computer…').click();
+        await vi.waitFor(() => expect(dialog().querySelectorAll('.tiptapeditor-gallery-list__item')).toHaveLength(3));
+        expect(dialog().querySelectorAll('.tiptapeditor-gallery-list__thumb--video')).toHaveLength(3);
+        const title = dialog().querySelector('input[aria-label="Video title"]');
+        title.value = 'Clip';
+        title.dispatchEvent(new Event('input'));
+        [...dialog().querySelectorAll('button')].find((b) => b.textContent === 'Insert').click();
+        expect(serialize(instance.editor)).toBe('<p>Text</p><div class="gallery" data-gallery="grid">'
+            + '<figure class="gallery__item"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" loading="lazy"></iframe></figure>'
+            + '<figure class="gallery__item"><video src="https://cdn.example.com/clip.webm" controls="" preload="metadata" playsinline=""></video></figure>'
+            + '<figure class="gallery__item"><video src="assets/uploads/sea.mp4" controls="" preload="metadata" playsinline=""></video></figure></div>');
+    });
+
     it('an empty gallery is not inserted', async () => {
         start('<p>Text</p>', { mediaSource: null, uploadHandler: async () => '' });
         await frame();
         button('gallery').click();
         [...dialog().querySelectorAll('button')].find((b) => b.textContent === 'Insert').click();
-        expect(dialog().querySelector('.tiptapeditor-dialog__error').textContent).toBe('Add at least one image.');
+        expect(dialog().querySelector('.tiptapeditor-dialog__error').textContent).toBe('Add at least one image or video.');
         expect(types()).not.toContain('gallery');
     });
 });

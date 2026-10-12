@@ -394,6 +394,31 @@
         object-fit: cover;
     }
 
+    // A video: never loaded in the manager, a dark tile with a play mark and its name.
+    .tiptapeditor__gallery-thumb--video {
+        display: inline-flex;
+        box-sizing: border-box;
+        align-items: flex-end;
+        padding: 4px;
+        overflow: hidden;
+        background: #2b2f36;
+        color: #fff;
+        font-size: 10px;
+        line-height: 1.2;
+        word-break: break-all;
+        position: relative;
+
+        &::before {
+            content: '▶';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            font-size: 20px;
+            opacity: .85;
+        }
+    }
+
     .tiptapeditor__gallery-more {
         color: var(--tiptapeditor-muted);
         font-weight: 600;

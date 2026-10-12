@@ -331,6 +331,19 @@
     background: #f3f5f7;
 }
 
+.tiptapeditor-gallery-list__thumb--video {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2b2f36;
+    color: #fff;
+    font-size: 22px;
+
+    &::before {
+        content: '▶';
+    }
+}
+
 .tiptapeditor-gallery-list__fields {
     display: flex;
     flex: 1;

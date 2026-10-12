@@ -21,11 +21,12 @@ const IGNORED_TAGS = new Set(['html', 'head', 'body', 'tbody']);
 /**
  * Galleries made by the editor (data-gallery, earlier data-tiptapeditor-gallery on the outer
  * element) are written with their current template, so
- * their markup may change. Only what they hold must survive: the pictures with all their
- * attributes, the links' addresses and the captions (text). The outer element keeps its own
+ * their markup may change. Only what they hold must survive: the pictures and videos (img,
+ * video, iframe) with all their attributes, the links' addresses and the captions (text). The outer element keeps its own
  * attributes except the class and the marker; its tag and class come from the template.
  */
 const GALLERY_MARKERS = ['data-gallery', 'data-tiptapeditor-gallery'];
+const GALLERY_CONTENT = new Set(['img', 'video', 'iframe', 'a']);
 
 function isGallery(el) {
     return el.localName !== 'a' && GALLERY_MARKERS.some((name) => el.hasAttribute(name));
@@ -103,7 +104,7 @@ function inventory(body, { ignoreStyle = false } = {}) {
             gallery = null;
         }
         const galleryRoot = !gallery && isGallery(node);
-        if (gallery && tag !== 'img' && tag !== 'a') {
+        if (gallery && !GALLERY_CONTENT.has(tag)) {
             continue;
         }
         // The outer element of a gallery: its tag comes from the template too.

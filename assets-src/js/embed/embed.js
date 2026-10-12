@@ -70,6 +70,31 @@ export function registerEmbedProvider(provider) {
 }
 
 registerEmbedProvider({
+    name: 'x',
+    // A post with a video on X (Twitter): the embed page of the post, no script on the site.
+    match: (url) => {
+        const id = /(?:^|\/\/)(?:www\.|mobile\.)?(?:x|twitter)\.com\/(?:[\w]+|i\/web)\/status(?:es)?\/(\d+)/i.exec(url)?.[1];
+        return id ? `https://platform.twitter.com/embed/Tweet.html?id=${id}` : null;
+    },
+});
+
+registerEmbedProvider({
+    name: 'vimeo',
+    match: (url) => {
+        const id = /(?:^|\/\/)(?:www\.|player\.)?vimeo\.com\/(?:video\/|channels\/[\w-]+\/|groups\/[\w-]+\/videos\/)?(\d+)/i.exec(url)?.[1];
+        return id ? `https://player.vimeo.com/video/${id}` : null;
+    },
+});
+
+registerEmbedProvider({
+    name: 'ok',
+    match: (url) => {
+        const id = /(?:^|\/\/)(?:www\.|m\.)?ok\.ru\/(?:video|videoembed|live)\/(\d+)/i.exec(url)?.[1];
+        return id ? `https://ok.ru/videoembed/${id}` : null;
+    },
+});
+
+registerEmbedProvider({
     name: 'rutube',
     match: (url) => {
         const id = /rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]{32})/i.exec(url)?.[1];
@@ -98,6 +123,25 @@ registerEmbedProvider({
 });
 
 /**
+ * The embed of a known video service for a page URL ({ src, attributes }), or null when no
+ * provider knows the URL.
+ */
+export function matchEmbedProvider(input) {
+    const value = String(input ?? '').trim();
+    for (const provider of value ? providers : []) {
+        try {
+            const result = provider.match(value);
+            if (result) {
+                return typeof result === 'string' ? { src: result, attributes: {} } : { src: result.src, attributes: { ...result } };
+            }
+        } catch {
+            // a broken provider is skipped
+        }
+    }
+    return null;
+}
+
+/**
  * What the user typed into the embed dialog: a video page URL, an embed URL or an
  * <iframe …> code. Returns { src, attributes } (attributes from pasted code) or null.
  */
@@ -120,17 +164,7 @@ export function parseEmbedInput(input) {
         }
         return { src: attributes.src, attributes };
     }
-    for (const provider of providers) {
-        try {
-            const result = provider.match(value);
-            if (result) {
-                return typeof result === 'string' ? { src: result, attributes: {} } : { src: result.src, attributes: { ...result } };
-            }
-        } catch {
-            // a broken provider is skipped
-        }
-    }
-    return { src: value, attributes: {} };
+    return matchEmbedProvider(value) || { src: value, attributes: {} };
 }
 
 /**

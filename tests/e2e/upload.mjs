@@ -15,7 +15,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 
 const settings = (...pairs) => php('./set-system-settings.php', ...pairs);
 settings('which_editor', 'TipTapEditor', 'use_editor', '1', 'tiptapeditor.toolbar', 'bold | image gallery | source',
-    'tiptapeditor.upload_enabled', '1', 'tiptapeditor.upload_path', UPLOADS);
+    'tiptapeditor.upload_enabled', '1', 'tiptapeditor.upload_path', UPLOADS, 'tiptapeditor.upload_file_prefix', '');
 rmSync(`${site}/${UPLOADS}`, { recursive: true, force: true });
 const { resources } = JSON.parse(php('./fixtures-setup.php'));
 
@@ -114,8 +114,8 @@ check('nothing inserted by a refused import', (await images()).length === 1);
 
 // 3. Gallery dialog: the same link row, refused the same way.
 await button('gallery').click();
-await page.locator('.tiptapeditor-dialog--gallery input[type="url"]').fill(`${base}/assets/e2e/img/pic.png`);
-await page.locator('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__button', { hasText: 'Copy to site' }).click();
+await page.locator('.tiptapeditor-dialog--gallery input[aria-label="Image or video address"]').fill(`${base}/assets/e2e/img/pic.png`);
+await page.locator('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__button', { hasText: /^Add$/ }).click();
 await page.waitForFunction(() => document.querySelector('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__error')?.textContent, null, { timeout: 20000 }).catch(() => {});
 refused = await page.locator('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__error').textContent().catch(() => '');
 check('gallery: copy by link refuses an internal address', /only public web sites/.test(refused), refused);
@@ -130,7 +130,7 @@ check('without upload_enabled the dialog has no upload or copy buttons',
     await dialogButton('Upload from computer…').count() === 0 && await dialogButton('Copy to site').count() === 0 && await dialogButton('Choose in Media Browser…').count() === 1);
 await page.click('.tiptapeditor-dialog--image .tiptapeditor-dialog__button:has-text("Cancel")');
 await button('gallery').click();
-await page.locator('.tiptapeditor-dialog--gallery input[type="url"]').fill('https://example.com/a.jpg');
+await page.locator('.tiptapeditor-dialog--gallery input[aria-label="Image or video address"]').fill('https://example.com/a.jpg');
 await page.locator('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__button', { hasText: /^Add$/ }).click();
 check('gallery: without uploads a link is added as it is', await page.locator('.tiptapeditor-gallery-list__name').first().textContent() === 'a.jpg');
 await page.click('.tiptapeditor-dialog--gallery .tiptapeditor-dialog__button:has-text("Cancel")');

@@ -1,7 +1,7 @@
 // Figures with captions, "open larger" links and galleries in a real MODX 3 manager.
 //   M=/path/to/site MODX_URL=... MODX_USER=... MODX_PASS=... node tests/e2e/gallery.mjs
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -106,7 +106,7 @@ await rows.nth(0).locator('input').nth(0).fill('First');
 await rows.nth(0).locator('input').nth(1).fill('First caption');
 await rows.nth(1).locator('[data-move="up"]').click();
 await dialog.locator('.tiptapeditor-dialog__button--primary').click();
-check('gallery card shows in the editor', /2 images/.test(await page.locator(`${root} .tiptapeditor__gallery-label`).textContent()));
+check('gallery card shows in the editor', /2 items/.test(await page.locator(`${root} .tiptapeditor__gallery-label`).textContent()));
 await save();
 content = db(resources.gallery).content;
 check('a new gallery carries data-gallery with its template', /<div class="swiper gallery-slider" data-gallery="slider">/.test(content), content);
@@ -145,6 +145,42 @@ try {
         + '<div class="photo"><img src="assets/e2e/img/pic.png" alt="First"><figcaption>First caption</figcaption></div></section>', content);
 } finally {
     writeFileSync(gridFile, gridBefore);
+}
+
+// 5. Videos: a YouTube page and an uploaded video file join the gallery.
+const UPLOADS = 'assets/e2e-gallery-video/';
+rmSync(`${process.env.M}/${UPLOADS}`, { recursive: true, force: true });
+settings('tiptapeditor.upload_enabled', '1', 'tiptapeditor.upload_path', UPLOADS);
+try {
+    await open(resources.gallery);
+    await page.locator(`${root} .tiptapeditor__gallery`).dblclick();
+    await field('Image or video address').fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    await dialog.locator('.tiptapeditor-dialog__button', { hasText: /^Add$/ }).click();
+    const chooser = page.waitForEvent('filechooser');
+    await dialog.locator('.tiptapeditor-dialog__button', { hasText: 'Upload from computer…' }).click();
+    await (await chooser).setFiles({ name: 'Море видео.mp4', mimeType: 'video/mp4', buffer: Buffer.from('not really a video') });
+    await page.locator('.tiptapeditor-gallery-list__item').nth(3).waitFor({ timeout: 10000 }).catch(() => {});
+    check('the video page and the uploaded video are in the gallery dialog', await page.locator('.tiptapeditor-gallery-list__thumb--video').count() === 2,
+        await dialog.textContent());
+    await page.locator('.tiptapeditor-gallery-list__item').nth(2).locator('input').nth(0).fill('Clip');
+    await dialog.locator('.tiptapeditor-dialog__button--primary').click();
+    check('videos are tiles in the editor, nothing of them is loaded in the manager',
+        await page.locator(`${root} .tiptapeditor__gallery-thumb--video`).count() === 2 && await page.locator(`${root} iframe, ${root} video`).count() === 0);
+    await save();
+    content = compact(db(resources.gallery).content);
+    check('the gallery is saved with an iframe for the service and <video> for the file', content === '<p>Gallery below.</p><div class="gallery" data-gallery="grid">'
+        + '<figure class="gallery__item"><img src="assets/e2e/img/pic2.png" alt=""></figure>'
+        + '<figure class="gallery__item"><img src="assets/e2e/img/pic.png" alt="First"><figcaption>First caption</figcaption></figure>'
+        + '<figure class="gallery__item"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" loading="lazy"></iframe></figure>'
+        + `<figure class="gallery__item"><video src="${UPLOADS}more-video.mp4" controls="" preload="metadata" playsinline=""></video></figure></div>`, content);
+    await open(resources.gallery);
+    check('a gallery with videos opens as a gallery again', (await types()).includes('gallery'));
+    const before = db(resources.gallery).content;
+    await save();
+    check('saved again unchanged', db(resources.gallery).content === before);
+} finally {
+    settings('tiptapeditor.upload_enabled', '0', 'tiptapeditor.upload_path', 'assets/uploads/');
+    rmSync(`${process.env.M}/${UPLOADS}`, { recursive: true, force: true });
 }
 check('no gallery image is loaded from the manager directory', !errors.some((e) => /404/.test(e)));
 

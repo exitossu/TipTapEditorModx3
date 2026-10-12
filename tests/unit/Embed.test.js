@@ -12,6 +12,10 @@ describe('embed providers and checks', () => {
         ['https://vk.com/video-123_456', 'https://vk.com/video_ext.php?oid=-123&id=456&hd=2'],
         ['https://vkvideo.ru/video-22822305_456242110', 'https://vk.com/video_ext.php?oid=-22822305&id=456242110&hd=2'],
         ['https://rutube.ru/video/0123456789abcdef0123456789abcdef/', 'https://rutube.ru/play/embed/0123456789abcdef0123456789abcdef'],
+        ['https://x.com/user/status/1790000000000000001', 'https://platform.twitter.com/embed/Tweet.html?id=1790000000000000001'],
+        ['https://twitter.com/user/status/1790000000000000001?s=20', 'https://platform.twitter.com/embed/Tweet.html?id=1790000000000000001'],
+        ['https://vimeo.com/76979871', 'https://player.vimeo.com/video/76979871'],
+        ['https://ok.ru/video/123456789', 'https://ok.ru/videoembed/123456789'],
         ['https://example.com/map', 'https://example.com/map'],
     ])('%s', (input, src) => {
         expect(parseEmbedInput(input).src).toBe(src);

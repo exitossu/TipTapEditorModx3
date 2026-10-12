@@ -1,3 +1,4 @@
+import { allowedAttributes, allowedHosts, isAllowedSrc } from '../embed/embed.js';
 import { EVENT_HANDLER } from '../utils/attributes.js';
 
 /**
@@ -16,8 +17,16 @@ import { EVENT_HANDLER } from '../utils/attributes.js';
  * The attribute of the lightbox link comes from tiptapeditor.lightbox_attribute (data-fancybox is
  * only an example): a single image gets it without a value, a gallery with its group name.
  *
- * Templates are data: HTML with the placeholders {items} (wrapper) and {image}, {caption}
- * (item). Built in: grid, slider (Swiper markup), images (only the pictures). Files in
+ * An item is a picture, a video file (<video>) or a video of a service such as YouTube or VK
+ * Video (<iframe>, only with iframes allowed and on an allowed host, see embed/embed.js):
+ *
+ *   <figure class="gallery__item"><video src="video/sea.mp4" controls="" preload="metadata" playsinline=""></video></figure>
+ *   <figure class="gallery__item"><iframe src="https://www.youtube.com/embed/…" allow="…" allowfullscreen="" loading="lazy"></iframe></figure>
+ *
+ * Only pictures get the lightbox link; a video plays where it is.
+ *
+ * Templates are data: HTML with the placeholders {items} (wrapper) and {image} (the picture or
+ * video), {caption} (item). Built in: grid, slider (Swiper markup), images (only the pictures). Files in
  * tiptapeditor.gallery_templates_path (one .html per template, read on the server) add templates or
  * replace them by name. Event handler attributes and script-like elements of a
  * template are removed, so a template cannot run code in the manager or on the site.
@@ -134,7 +143,8 @@ function escapeHtml(value) {
 
 function attributesHtml(attributes) {
     return Object.entries(attributes)
-        .filter(([name, value]) => value !== null && value !== undefined && ATTRIBUTE_NAME.test(name) && !EVENT_HANDLER.test(name))
+        .filter(([name, value]) => value !== null && value !== undefined && ATTRIBUTE_NAME.test(name) && !EVENT_HANDLER.test(name)
+            && !UNSAFE_URL.test(String(value)))
         .map(([name, value]) => ` ${name}="${escapeHtml(value)}"`)
         .join('');
 }
@@ -159,6 +169,55 @@ export function itemImageHtml(item, { lightbox, attribute, group, label }) {
     })}>${img}</a>`;
 }
 
+/** Attributes a new video file gets: the site shows the player, loads only the first frame. */
+export const VIDEO_DEFAULTS = Object.freeze({ controls: '', preload: 'metadata', playsinline: '' });
+/** Attributes a new video of a service gets (those the iframe settings allow are written). */
+export const EMBED_DEFAULTS = Object.freeze({
+    allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+    allowfullscreen: '',
+    loading: 'lazy',
+});
+
+const UNSAFE_URL = /^\s*(javascript|vbscript|data):/i;
+
+/** <video> of one gallery item, as HTML. */
+export function itemVideoHtml(item) {
+    return `<video${attributesHtml({
+        src: item.src,
+        title: item.title || null,
+        width: item.width || null,
+        height: item.height || null,
+        ...(item.extra ?? VIDEO_DEFAULTS),
+    })}></video>`;
+}
+
+/** <iframe> of one gallery item, as HTML: only the attributes the iframe settings allow. */
+export function itemEmbedHtml(item, iframe) {
+    const allowed = allowedAttributes(iframe?.allowedAttributes);
+    const attributes = Object.fromEntries(Object.entries({
+        src: item.src,
+        title: item.title || null,
+        width: item.width || null,
+        height: item.height || null,
+        ...(item.extra ?? EMBED_DEFAULTS),
+    }).filter(([name]) => allowed.has(name.toLowerCase())));
+    return `<iframe${attributesHtml(attributes)}></iframe>`;
+}
+
+/** The picture, video or embed of one gallery item, as HTML. */
+export function itemMediaHtml(item, options) {
+    if (UNSAFE_URL.test(String(item.src ?? ''))) {
+        return '';
+    }
+    if (item.type === 'video') {
+        return itemVideoHtml(item);
+    }
+    if (item.type === 'embed') {
+        return options.iframe && isAllowedSrc(item.src, allowedHosts(options.iframe.allowedHosts)) ? itemEmbedHtml(item, options.iframe) : '';
+    }
+    return itemImageHtml(item, options);
+}
+
 function stripUnsafe(root) {
     root.querySelectorAll(UNSAFE_ELEMENTS).forEach((el) => el.remove());
     for (const el of [root, ...root.querySelectorAll('*')]) {
@@ -175,21 +234,30 @@ function stripUnsafe(root) {
  * The gallery element for the content.
  * @param {Document} doc document to create the element in
  * @param {object} attrs node attributes: template, items, lightbox, group, wrapper
- * @param {object} options templates, lightboxAttribute, lightboxLabel
+ * @param {object} options templates, lightboxAttribute, lightboxLabel, iframe (null: no embeds)
  */
-export function renderGallery(doc, attrs, { templates, lightboxAttribute: attribute, lightboxLabel: label }) {
+export function renderGallery(doc, attrs, { templates, lightboxAttribute: attribute, lightboxLabel: label, iframe = null }) {
     const template = templates[attrs.template] || templates.grid;
     const name = attribute || '';
-    const items = (attrs.items || []).map((item) => {
+    const list = attrs.items || [];
+    // The template is cleaned first, then the pictures and videos go in: an iframe of the
+    // template is removed, the iframe of a video item is not.
+    const items = list.map((item, index) => {
         const caption = String(item.caption || '').trim();
         return template.item
-            .replace('{image}', itemImageHtml(item, { lightbox: attrs.lightbox, attribute: name, group: attrs.group, label }))
+            .replace('{image}', `<tiptapeditor-media data-index="${index}"></tiptapeditor-media>`)
             .replace('{caption}', caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : '');
     }).join('');
     const box = doc.createElement('div');
     box.innerHTML = template.wrapper.replace('{items}', items);
     const wrapper = box.firstElementChild || doc.createElement('div');
     stripUnsafe(wrapper);
+    const media = doc.createElement('div');
+    for (const slot of [...wrapper.querySelectorAll('tiptapeditor-media')]) {
+        const item = list[Number(slot.getAttribute('data-index'))];
+        media.innerHTML = item ? itemMediaHtml(item, { lightbox: attrs.lightbox, attribute: name, group: attrs.group, label, iframe }) : '';
+        slot.replaceWith(...media.childNodes);
+    }
     if (attrs.wrapper) {
         // Attributes of a saved gallery in their order (its id, style …); the template adds what
         // they lack. The class is always the template's, so a changed template applies.
@@ -217,26 +285,96 @@ export function renderGallery(doc, attrs, { templates, lightboxAttribute: attrib
 }
 
 const IMAGE_KNOWN = new Set(['src', 'alt', 'title', 'width', 'height']);
+const MEDIA_KNOWN = new Set(['src', 'title', 'width', 'height']);
+
+/** Attributes of an element except the known ones, in their order; null when there are none. */
+function extraAttributes(element, known) {
+    const extra = {};
+    for (const attr of element.getAttributeNames()) {
+        if (!known.has(attr.toLowerCase()) && !EVENT_HANDLER.test(attr)) {
+            extra[attr] = element.getAttribute(attr);
+        }
+    }
+    return Object.keys(extra).length ? extra : null;
+}
+
+/**
+ * The <figcaption> of a picture or video: in the nearest element around it that holds no other
+ * picture or video (its <figure>, or the item element of a template without one).
+ */
+function captionOf(media, gallery) {
+    for (let el = media.parentElement; el && el !== gallery && gallery.contains(el); el = el.parentElement) {
+        if (el.querySelectorAll('img, video, iframe').length > 1) {
+            return null;
+        }
+        const caption = el.querySelector('figcaption');
+        if (caption) {
+            return caption;
+        }
+    }
+    return null;
+}
+
+/**
+ * A <video> or <iframe> of a gallery as an item, or null when the gallery cannot keep it: inside
+ * a link, with content (<source>, <track>, fallback text), an iframe when iframes are off or
+ * with an attribute or host the iframe settings do not allow.
+ */
+function mediaItem(element, gallery, iframe) {
+    const link = element.parentElement?.closest('a');
+    if ((link && gallery.contains(link)) || element.childNodes.length || !element.getAttribute('src')
+        || UNSAFE_URL.test(element.getAttribute('src'))) {
+        return null;
+    }
+    if (element.localName === 'iframe') {
+        const allowed = allowedAttributes(iframe?.allowedAttributes);
+        if (!iframe || element.getAttributeNames().some((name) => !allowed.has(name.toLowerCase()) || EVENT_HANDLER.test(name))
+            || !isAllowedSrc(element.getAttribute('src'), allowedHosts(iframe.allowedHosts))) {
+            return null;
+        }
+    }
+    return {
+        type: element.localName === 'video' ? 'video' : 'embed',
+        src: element.getAttribute('src'),
+        title: element.getAttribute('title'),
+        width: element.getAttribute('width'),
+        height: element.getAttribute('height'),
+        // {} rather than null: a saved video keeps exactly its attributes, no defaults are added.
+        extra: extraAttributes(element, MEDIA_KNOWN) || {},
+    };
+}
 
 /**
  * Gallery node attributes read from its element, or false when the markup holds something
  * the gallery cannot keep (a formatted caption, text outside captions, a link that is not the
  * lightbox link, …): such markup stays as an HTML block.
  */
-export function parseGallery(element, { lightboxAttribute: attribute, templates = null }) {
+export function parseGallery(element, { lightboxAttribute: attribute, templates = null, iframe = null }) {
     const template = galleryTemplateOf(element, templates || galleryTemplates().templates);
     if (!template) {
         return false;
     }
     const name = attribute || '';
-    const images = [...element.querySelectorAll('img')];
-    if (!images.length) {
+    const media = [...element.querySelectorAll('img, video, iframe')];
+    if (!media.length) {
         return false;
     }
     let lightbox = null;
     let group = '';
     const items = [];
-    for (const img of images) {
+    for (const img of media) {
+        if (img.localName !== 'img') {
+            const item = mediaItem(img, element, iframe);
+            if (!item) {
+                return false;
+            }
+            const figcaption = captionOf(img, element);
+            if (figcaption && figcaption.children.length) {
+                return false;
+            }
+            items.push({ ...item, caption: figcaption ? figcaption.textContent.trim() : '' });
+            continue;
+        }
         const link = img.parentElement?.closest('a');
         const linked = Boolean(link && element.contains(link));
         if (linked && ((name && !link.hasAttribute(name)) || !link.hasAttribute('href') || link.querySelectorAll('img').length !== 1 || link.textContent.trim())) {
@@ -249,24 +387,18 @@ export function parseGallery(element, { lightboxAttribute: attribute, templates 
         if (linked && name) {
             group = link.getAttribute(name) || group;
         }
-        const figure = img.closest('figure');
-        const figcaption = figure && element.contains(figure) ? figure.querySelector('figcaption') : null;
+        const figcaption = captionOf(img, element);
         if (figcaption && figcaption.children.length) {
             return false;
         }
-        const extra = {};
-        for (const attr of img.getAttributeNames()) {
-            if (!IMAGE_KNOWN.has(attr.toLowerCase()) && !EVENT_HANDLER.test(attr)) {
-                extra[attr] = img.getAttribute(attr);
-            }
-        }
+        const extra = extraAttributes(img, IMAGE_KNOWN);
         items.push({
             src: img.getAttribute('src') || '',
             alt: img.getAttribute('alt') ?? '',
             title: img.getAttribute('title'),
             width: img.getAttribute('width'),
             height: img.getAttribute('height'),
-            extra: Object.keys(extra).length ? extra : null,
+            extra,
             href: linked && link.getAttribute('href') !== img.getAttribute('src') ? link.getAttribute('href') : null,
             caption: figcaption ? figcaption.textContent.trim() : '',
         });

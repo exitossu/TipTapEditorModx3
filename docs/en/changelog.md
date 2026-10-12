@@ -4,6 +4,19 @@ outline: false
 
 # Changelog
 
+## 0.1.0-alpha21
+
+- Videos in galleries: the gallery dialog takes video files (mp4, webm, ogv, m4v, mov) from the
+  Media Browser or the computer, the address of a video file, and video pages of YouTube, VK
+  Video, Rutube, Vimeo, OK and X or an &lt;iframe> code. A file is written as &lt;video controls
+  preload="metadata" playsinline>, a video of a service as the player's &lt;iframe> in place of
+  {image}; pictures and videos can be mixed. Videos of services follow the iframe settings
+  (enable_iframe, iframe_allowed_hosts, iframe_allowed_attributes); a gallery whose video they
+  refuse stays an HTML block. Only pictures get the "open larger" link. Videos are never loaded
+  in the manager: the gallery card and the dialog show a tile with the file name or site.
+- Embeds and the embed dialog also understand links of Vimeo, OK (ok.ru) and X (x.com,
+  twitter.com).
+
 ## 0.1.0-alpha20
 
 - Gallery templates are files: one .html file per template in the new setting

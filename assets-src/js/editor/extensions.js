@@ -129,6 +129,8 @@ export function buildExtensions(config, hooks = {}) {
                 templates,
                 lightboxAttribute: lightboxAttribute(config.lightboxAttribute),
                 lightboxLabel: config.lightboxLabel || (hooks.t ? hooks.t('lightbox_label') : ''),
+                iframe: config.features?.iframe !== false
+                    ? { allowedAttributes: config.iframeAllowedAttributes, allowedHosts: config.iframeAllowedHosts } : null,
                 siteBaseUrl: config.siteBaseUrl || '/',
                 t: hooks.t || ((key) => key),
                 onEdit: () => (hooks.ui?.editGallery ? hooks.ui.editGallery() : false),

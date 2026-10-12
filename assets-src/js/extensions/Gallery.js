@@ -1,6 +1,7 @@
 import { Node } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import { GALLERY_SELECTOR, parseGallery, renderGallery } from '../images/gallery.js';
+import { hostOf } from '../embed/embed.js';
 import { previewUrl } from '../modx/MediaBrowser.js';
 import { createElement } from '../utils/dom.js';
 
@@ -8,10 +9,11 @@ const PREVIEW_COUNT = 8;
 let inert = null;
 
 /**
- * Image gallery as one block (images/gallery.js has the markup and templates).
+ * Gallery of pictures and videos as one block (images/gallery.js has the markup and templates).
  *
  * Only galleries made by the editor (data-gallery with the template name on the outer element)
- * become this node; anything else stays what it was. In the manager it is a card with thumbnails; double
+ * become this node; anything else stays what it was. In the manager it is a card with thumbnails
+ * (a video is a tile with its file name or site: nothing of it is loaded); double
  * click or Enter opens the gallery dialog. Unchanged galleries are saved as they were (the
  * field is only rewritten when the document changes).
  */
@@ -48,6 +50,8 @@ export const Gallery = Node.create({
             templates: {},
             lightboxAttribute: '',
             lightboxLabel: '',
+            // { allowedAttributes, allowedHosts } of the iframe settings; null: no videos of services.
+            iframe: null,
             siteBaseUrl: '/',
             t: (key) => key,
             onEdit: () => false,
@@ -70,7 +74,11 @@ export const Gallery = Node.create({
         return [{
             tag: GALLERY_SELECTOR,
             priority: 70,
-            getAttrs: (element) => parseGallery(element, { lightboxAttribute: this.options.lightboxAttribute, templates: this.options.templates }),
+            getAttrs: (element) => parseGallery(element, {
+                lightboxAttribute: this.options.lightboxAttribute,
+                templates: this.options.templates,
+                iframe: this.options.iframe,
+            }),
         }];
     },
 
@@ -108,6 +116,12 @@ export const Gallery = Node.create({
                 label.textContent = `${t('gallery')} · ${t('gallery_count').replace('{count}', String(items.length))}`
                     + ` · ${t(templateLabel)}${lightbox ? ` · ${t('lightbox_short')}` : ''}`;
                 thumbs.replaceChildren(...items.slice(0, PREVIEW_COUNT).map((item) => {
+                    if (item.type === 'video' || item.type === 'embed') {
+                        const tile = createElement('span', 'tiptapeditor__gallery-thumb tiptapeditor__gallery-thumb--video');
+                        tile.textContent = item.type === 'embed' ? (hostOf(item.src) || item.src).replace(/^www\./, '') : String(item.src).split('/').pop();
+                        tile.title = item.title || item.src;
+                        return tile;
+                    }
                     const img = createElement('img', 'tiptapeditor__gallery-thumb', { alt: item.alt || '', loading: 'lazy' });
                     img.src = previewUrl(item.src, siteBaseUrl);
                     return img;

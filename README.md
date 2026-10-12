@@ -4,7 +4,7 @@ A rich text editor for the MODX 3 manager built on [Tiptap 3](https://tiptap.dev
 It registers as **TipTapEditor** in the `which_editor` system setting and replaces the resource
 content field and RichText template variables.
 
-> Status: **0.1.0-alpha20, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
+> Status: **0.1.0-alpha21, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
 > Documentation: https://exitossu.github.io/TipTapEditorModx3/ (sources in `docs/`, `npm run docs:dev`).
 
 ## Requirements

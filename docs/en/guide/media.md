@@ -161,16 +161,39 @@ If you replace the file of an image whose link opened the old file, the link now
 
 ## Galleries
 
-Click **Gallery** to open the **Insert gallery** dialog:
+Click **Gallery** to open the **Insert gallery** dialog. A gallery can mix pictures and videos:
 
-- **Add from Media Browser…**: select several images at once in the Media Browser (Ctrl+click or Shift+click).
-- **Upload from computer…**: pick several files; they are uploaded one after another into the upload folder. Shown when uploads are enabled.
-- An address field with a button for images by link. With uploads enabled the button is **Copy to site** and the picture is copied into the upload folder. Otherwise the button is **Add** and the address is used as it is.
-- For each image: alternative text and caption, **Move up**, **Move down**, **Remove from gallery**.
+- **Add from Media Browser…**: select several files at once in the Media Browser (Ctrl+click or Shift+click): images and video files `mp4`, `webm`, `ogv`, `m4v`, `mov`.
+- **Upload from computer…**: pick several images and video files; they are uploaded one after another into the upload folder. Shown when uploads are enabled.
+- **Image or video address** and **Add**:
+  - a video page of **YouTube** (Shorts and `youtu.be` too), **VK Video** (`vk.com`, `vkvideo.ru`), **Rutube**, **Vimeo**, **OK** (`ok.ru`) or **X** (`x.com`, `twitter.com`, a post with a video), or a complete `<iframe>` code: the video is embedded with the service's player;
+  - the address of a video file (`…/clip.mp4`): used as it is, not copied to the site;
+  - the address of an image: copied into the upload folder when uploads are enabled, otherwise used as it is.
+- For each item: alternative text (an image) or **Video title** (a video), caption, **Move up**, **Move down**, **Remove from gallery**. A video is shown as a dark tile with ▶ and its file name or site.
 - **Template**: how the gallery is written (see below). The caption field is hidden for templates without captions.
 - **Open larger on click**: a lightbox link around every picture, with one group name for the whole gallery.
 
-In the editor a gallery is a card with thumbnails. Double click it, or press Enter when it is selected, to open **Edit gallery**; **Remove gallery** deletes it. Saving without changes leaves the gallery markup untouched.
+In the editor a gallery is a card with thumbnails. Videos are never loaded or played in the manager. Double click it, or press Enter when it is selected, to open **Edit gallery**; **Remove gallery** deletes it. Saving without changes leaves the gallery markup untouched.
+
+### Videos in a gallery {#gallery-video}
+
+A video takes the place of `{image}` in the template:
+
+```html
+<!-- a video file -->
+<figure class="gallery__item"><video src="assets/uploads/sea.mp4" controls="" preload="metadata" playsinline=""></video></figure>
+<!-- a video of a service -->
+<figure class="gallery__item"><iframe src="https://www.youtube.com/embed/ID" title="Clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" loading="lazy"></iframe></figure>
+```
+
+- **A video file** is a `<video>` with player controls; the browser loads only the first frame until the visitor presses play.
+- **A video of a service** is the player's `<iframe>`. The [embed](#embeds-video-and-iframes) rules apply: `tiptapeditor.enable_iframe` must be on, the site must be in `tiptapeditor.iframe_allowed_hosts` (when the list is set), and the `<iframe>` keeps only the attributes of `tiptapeditor.iframe_allowed_attributes`. A gallery with a video these rules refuse stays an HTML block, unchanged.
+- **Open larger on click** adds the link to pictures only; a video plays where it is.
+- The size of videos comes from the site's CSS, for example `.gallery video, .gallery iframe { width: 100%; aspect-ratio: 16 / 9; }`.
+
+::: warning Uploading video files
+Videos are uploaded through MODX like images, so MODX settings apply: the extension must be in `upload_files` (by default it has `mp4` but not `webm`) or in the allowed file types of the Media Source, and the size must not exceed `upload_maxsize` (2 MB by default, usually too little for a video). The server also limits the request size (`upload_max_filesize` and `post_max_size` in PHP).
+:::
 
 ### Templates
 
@@ -178,7 +201,7 @@ In the editor a gallery is a card with thumbnails. Double click it, or press Ent
 |---|---|
 | `grid` (**Grid**) | `<div class="gallery">` with a `<figure class="gallery__item">` per image. |
 | `slider` (**Slider (Swiper)**) | Swiper markup: `div.swiper.gallery-slider` > `div.swiper-wrapper` > `div.swiper-slide`, plus pagination and prev/next buttons. Load Swiper on your site to make it slide. |
-| `images` (**Images only**) | `<div class="gallery gallery--images">` with just the images. |
+| `images` (**Images only**) | `<div class="gallery gallery--images">` with just the images and videos. |
 
 `tiptapeditor.gallery_template` sets the template for new galleries (default `grid`).
 
@@ -207,7 +230,7 @@ Every template is a file you can edit: one `.html` file per template in the fold
 ```
 
 - Before `<!-- item -->`: the outer element of the gallery, with `{items}` exactly once.
-- After `<!-- item -->`: one picture, with `{image}` exactly once and, optionally, `{caption}` once. `{image}` is the `<img>` (with its link when "open larger" is on); `{caption}` is a `<figcaption>` with the caption, or nothing. Without `{caption}` the caption field is hidden in the dialog.
+- After `<!-- item -->`: one picture or video, with `{image}` exactly once and, optionally, `{caption}` once. `{image}` is the `<img>` (with its link when "open larger" is on) or the video (`<video>` or `<iframe>`); `{caption}` is a `<figcaption>` with the caption, or nothing. Without `{caption}` the caption field is hidden in the dialog.
 - `<!-- label: … -->` is the name in the dialog (optional; without it the built-in names keep their translated label, others show the file name). Other comments are notes and are left out.
 - A new file is a new template: save `cards.html` and it appears in the **Template** list. A file named like a built-in template replaces it.
 
@@ -223,7 +246,7 @@ Every template is a file you can edit: one `.html` file per template in the fold
 
 **Video or embed** (`embed`) opens the **Insert video or embed** dialog:
 
-- **Video URL or embed code**: a YouTube, VK Video or Rutube page link, an embed URL, or a complete `<iframe>` code. Page links are converted to the player address, for example `https://youtu.be/ID?t=30` becomes `https://www.youtube.com/embed/ID?start=30`.
+- **Video URL or embed code**: a YouTube, VK Video, Rutube, Vimeo, OK or X page link, an embed URL, or a complete `<iframe>` code. Page links are converted to the player address, for example `https://youtu.be/ID?t=30` becomes `https://www.youtube.com/embed/ID?start=30`.
 - **Width** and **Height** (560 × 315 for a new embed): a number, optionally with `px` or `%`.
 - **Title** and **Allow fullscreen**, when these attributes are allowed.
 

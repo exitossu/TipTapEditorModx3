@@ -1,8 +1,52 @@
 import { NodeSelection } from '@tiptap/pm/state';
-import { browseFiles, canBrowse, fileUrl, hasFileType, IMAGE_FILE_TYPES, previewUrl } from '../modx/MediaBrowser.js';
+import { allowedAttributes, allowedHosts, filterAttributes, hostOf, isAllowedSrc, matchEmbedProvider, parseEmbedInput } from '../embed/embed.js';
+import { browseFiles, canBrowse, fileUrl, hasFileType, IMAGE_FILE_TYPES, previewUrl, VIDEO_FILE_TYPES } from '../modx/MediaBrowser.js';
 import { Dialog } from '../ui/Dialog.js';
 import { createElement } from '../utils/dom.js';
-import { galleryTemplates, newGroup } from './gallery.js';
+import { EMBED_DEFAULTS, galleryTemplates, newGroup, VIDEO_DEFAULTS } from './gallery.js';
+
+/** Is this address a video file (by its extension)? */
+export function isVideoFile(src) {
+    const path = String(src ?? '').split(/[?#]/)[0];
+    const ext = path.includes('.') ? path.slice(path.lastIndexOf('.') + 1).toLowerCase() : '';
+    return Boolean(ext) && VIDEO_FILE_TYPES.split(',').includes(ext);
+}
+
+/** A gallery item of a video file. */
+export function videoItem(src) {
+    return { type: 'video', src, title: null, extra: { ...VIDEO_DEFAULTS }, caption: '' };
+}
+
+/**
+ * A gallery item of a video service (YouTube, VK Video, Rutube, X …) or of pasted <iframe> code,
+ * or null when the input is neither. Throws when iframes are off or the site is not allowed.
+ */
+export function embedItem(input, iframe, t = (key) => key) {
+    const value = String(input ?? '').trim();
+    const code = /^<iframe\b/i.test(value);
+    const found = code ? parseEmbedInput(value) : matchEmbedProvider(value);
+    if (!found?.src) {
+        return null;
+    }
+    if (!iframe) {
+        throw new Error(t('gallery_embeds_off'));
+    }
+    if (!isAllowedSrc(found.src, allowedHosts(iframe.allowedHosts))) {
+        throw new Error(t('embed_host_not_allowed'));
+    }
+    const allowed = allowedAttributes(iframe.allowedAttributes);
+    const pasted = filterAttributes(found.attributes, allowed);
+    const { src, title = null, width = null, height = null, ...extra } = code ? pasted : {};
+    return {
+        type: 'embed',
+        src: found.src,
+        title,
+        width,
+        height,
+        extra: code ? extra : filterAttributes(EMBED_DEFAULTS, allowed),
+        caption: '',
+    };
+}
 
 function selectedGallery(editor) {
     const { selection } = editor.state;
@@ -29,8 +73,9 @@ function iconButton(dialog, label, text, onClick) {
 }
 
 /**
- * Gallery dialog: the pictures (from the Media Browser, several at once, or uploaded from the
- * computer into upload_path), their order, alt text and caption, the template
+ * Gallery dialog: the pictures and videos (from the Media Browser, several at once, uploaded
+ * from the computer into upload_path, by address: a picture, a video file or a page of a video
+ * service), their order, alt text (title of a video) and caption, the template
  * (tiptapeditor.gallery_template, the template files) and "open larger" (tiptapeditor.lightbox).
  *
  * @param {import('@tiptap/core').Editor} editor
@@ -45,6 +90,8 @@ export function openGalleryDialog(editor, context) {
     const attrs = target?.node.attrs || {};
     const { templates } = galleryTemplates(config.galleryTemplateFiles);
     const items = (attrs.items || []).map((item) => ({ ...item }));
+    const iframe = config.features?.iframe !== false
+        ? { allowedAttributes: config.iframeAllowedAttributes, allowedHosts: config.iframeAllowedHosts } : null;
 
     const dialog = new Dialog({ title: t(target ? 'gallery_edit' : 'gallery_insert'), t, className: 'tiptapeditor-dialog--gallery' });
 
@@ -58,10 +105,12 @@ export function openGalleryDialog(editor, context) {
     tools.append(...[browseButton, uploadButton].filter(Boolean));
     // By URL: copied into upload_path when the field may upload, otherwise linked as it is.
     const urlRow = createElement('div', 'tiptapeditor-dialog__tools');
-    const urlInput = createElement('input', 'tiptapeditor-dialog__input', { type: 'url', placeholder: 'https://', 'aria-label': t('image_url') });
-    const urlButton = dialog.button(t(typeof context.importImage === 'function' ? 'image_import_button' : 'gallery_add_url'), { onClick: () => addUrl() });
+    const urlInput = createElement('input', 'tiptapeditor-dialog__input', { type: 'text', placeholder: 'https://', 'aria-label': t('gallery_url') });
+    const urlButton = dialog.button(t('gallery_add_url'), { onClick: () => addUrl() });
     urlRow.append(urlInput, urlButton);
-    tools.after(urlRow);
+    const urlHint = createElement('p', 'tiptapeditor-dialog__hint');
+    urlHint.textContent = t(iframe ? 'gallery_url_hint' : 'gallery_url_hint_no_embeds');
+    tools.after(urlRow, urlHint);
     urlInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -87,14 +136,24 @@ export function openGalleryDialog(editor, context) {
         empty.hidden = items.length > 0;
         list.replaceChildren(...items.map((item, index) => {
             const row = createElement('li', 'tiptapeditor-gallery-list__item');
-            const thumb = createElement('img', 'tiptapeditor-gallery-list__thumb', { alt: '' });
-            thumb.src = previewUrl(item.src, config.siteBaseUrl);
+            const video = item.type === 'video' || item.type === 'embed';
+            // A video is not loaded in the dialog: a tile with a play mark.
+            const thumb = video
+                ? createElement('span', 'tiptapeditor-gallery-list__thumb tiptapeditor-gallery-list__thumb--video', { 'aria-hidden': 'true' })
+                : createElement('img', 'tiptapeditor-gallery-list__thumb', { alt: '' });
+            if (!video) {
+                thumb.src = previewUrl(item.src, config.siteBaseUrl);
+            }
             const fields = createElement('div', 'tiptapeditor-gallery-list__fields');
             const name = createElement('div', 'tiptapeditor-gallery-list__name');
-            name.textContent = item.src.split('/').pop();
-            const alt = createElement('input', 'tiptapeditor-dialog__input', { type: 'text', placeholder: t('image_alt'), 'aria-label': t('image_alt') });
-            alt.value = item.alt ?? '';
-            alt.addEventListener('input', () => { item.alt = alt.value; });
+            name.textContent = item.type === 'embed' ? `${t('gallery_video')} · ${(hostOf(item.src) || '').replace(/^www\./, '') || item.src}`
+                : `${video ? `${t('gallery_video')} · ` : ''}${String(item.src).split('/').pop()}`;
+            name.title = item.src;
+            const key = video ? 'title' : 'alt';
+            const label = t(video ? 'gallery_video_title' : 'image_alt');
+            const alt = createElement('input', 'tiptapeditor-dialog__input', { type: 'text', placeholder: label, 'aria-label': label });
+            alt.value = item[key] ?? '';
+            alt.addEventListener('input', () => { item[key] = alt.value; });
             const caption = createElement('input', 'tiptapeditor-dialog__input', { type: 'text', placeholder: t('image_caption'), 'aria-label': t('image_caption') });
             caption.value = item.caption ?? '';
             caption.hidden = !hasCaption();
@@ -127,10 +186,14 @@ export function openGalleryDialog(editor, context) {
     }
     template.addEventListener('change', render);
 
-    function add(srcs) {
-        for (const src of srcs) {
-            if (src && !items.some((item) => item.src === src)) {
-                items.push({ src, alt: '', caption: '' });
+    /** Adds addresses (a picture, or a video file by its extension) and ready items. */
+    function add(entries) {
+        for (const entry of entries) {
+            const item = typeof entry === 'string'
+                ? (isVideoFile(entry) ? videoItem(entry) : { src: entry, alt: '', caption: '' })
+                : entry;
+            if (item?.src && !items.some((other) => other.src === item.src)) {
+                items.push(item);
             }
         }
         dialog.error('');
@@ -143,7 +206,7 @@ export function openGalleryDialog(editor, context) {
             files = await browseFiles({
                 source: config.mediaSource,
                 context: config.resource?.context,
-                fileTypes: IMAGE_FILE_TYPES,
+                fileTypes: `${IMAGE_FILE_TYPES},${VIDEO_FILE_TYPES}`,
             });
         } catch (error) {
             context.logger?.debug('media browser failed', error);
@@ -152,9 +215,9 @@ export function openGalleryDialog(editor, context) {
         if (dialog.closed) {
             return;
         }
-        const images = files.filter((file) => hasFileType(file, IMAGE_FILE_TYPES));
+        const images = files.filter((file) => hasFileType(file, `${IMAGE_FILE_TYPES},${VIDEO_FILE_TYPES}`));
         if (images.length < files.length) {
-            dialog.error(t('not_an_image'));
+            dialog.error(t('gallery_not_media'));
         }
         add(images.map((file) => fileUrl(file, config.mediaUrlMode, config.siteBaseUrl)));
         (list.querySelector('input') || browseButton)?.focus();
@@ -162,6 +225,21 @@ export function openGalleryDialog(editor, context) {
 
     async function addUrl() {
         const value = urlInput.value.trim();
+        // A page of a video service or <iframe> code: the video is embedded.
+        let embed = null;
+        try {
+            embed = embedItem(value, iframe, t);
+        } catch (error) {
+            dialog.error(error.message);
+            urlInput.focus();
+            return;
+        }
+        if (embed || (isVideoFile(value) && !/^\s*(javascript|data|vbscript):/i.test(value))) {
+            // A video file by address is linked as it is: it is not copied to the site.
+            add([embed || videoItem(value)]);
+            urlInput.value = '';
+            return;
+        }
         if (!/^(https?:\/\/|\/)?\S+$/i.test(value) || /^\s*(javascript|data|vbscript):/i.test(value)) {
             dialog.error(t('image_import_err_url'));
             urlInput.focus();
@@ -197,15 +275,15 @@ export function openGalleryDialog(editor, context) {
     }
 
     function pickFiles() {
-        const input = createElement('input', '', { type: 'file', accept: 'image/*', multiple: '', hidden: '' });
+        const input = createElement('input', '', { type: 'file', accept: 'image/*,video/*', multiple: '', hidden: '' });
         const done = () => input.remove();
         input.addEventListener('cancel', done);
         input.addEventListener('change', async () => {
             const files = [...(input.files || [])];
             done();
-            const images = files.filter((file) => /^image\//.test(file.type));
+            const images = files.filter((file) => /^(image|video)\//.test(file.type));
             if (images.length < files.length) {
-                dialog.error(t('not_an_image'));
+                dialog.error(t('gallery_not_media'));
             }
             const srcs = [];
             for (const [index, file] of images.entries()) {
@@ -213,7 +291,7 @@ export function openGalleryDialog(editor, context) {
                 try {
                     const src = await context.upload(file, { editor });
                     if (typeof src === 'string' && src && !/^\s*data:/i.test(src)) {
-                        srcs.push(src);
+                        srcs.push(/^video\//.test(file.type) ? videoItem(src) : src);
                     }
                 } catch (error) {
                     context.logger?.debug('upload failed', error);

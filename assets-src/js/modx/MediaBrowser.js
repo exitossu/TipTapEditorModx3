@@ -11,6 +11,8 @@
  */
 
 export const IMAGE_FILE_TYPES = 'jpg,jpeg,png,gif,webp,svg,avif';
+/** Video files a gallery takes (played by the browser in <video>). */
+export const VIDEO_FILE_TYPES = 'mp4,webm,ogv,m4v,mov';
 
 const ABSOLUTE = /^([a-z][a-z\d+.-]*:|\/\/)/i;
 const TEMPLATE_TAG = /\[\[|\{[$/a-z_]/i;
