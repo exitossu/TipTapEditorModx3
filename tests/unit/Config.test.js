@@ -19,9 +19,9 @@ describe('configuration layers', () => {
         );
         expect(config.toolbar).toBe('undo redo | bold link');
         expect(configData({ toolbar: [['undo', 'redo'], ['bold']] }).toolbar).toBe('undo redo | bold');
-        expect(config.features).toMatchObject({ tables: false, images: true, fullscreen: true });
+        expect(config.features).toMatchObject({ tables: false, images: true, gallery: true });
         expect(config.minHeight).toBe(300);
-        expect(config.defaultHeight).toBe(300);
+        expect(config.maxHeight).toBe(700);
     });
 
     it('takes only known keys from external config and profiles', () => {
@@ -35,13 +35,13 @@ describe('configuration layers', () => {
         expect(config.editorAttributes).toEqual({ spellcheck: 'false', 'data-x': '1', lang: 'ru' });
     });
 
-    it('chooses the profile: runtime option, TV entry, content profile, default', () => {
-        const config = resolveConfig({ defaultProfile: 'full', contentProfile: 'article', tvProfiles: { intro: 'simple', tv7: 'seven' } });
+    it('chooses the profile: runtime option, TV entry, "content" for other fields, "default"', () => {
+        const config = resolveConfig({ profiles: { content: { toolbar: 'bold' } }, tvProfiles: { intro: 'simple', tv7: 'seven' } });
         expect(profileName(config, { options: { profile: 'x' } })).toBe('x');
         expect(profileName(config, { field: { name: 'intro', id: 3 } })).toBe('simple');
         expect(profileName(config, { field: { name: 'other', id: 7 } })).toBe('seven');
-        expect(profileName(config, { field: { name: 'other', id: 8 } })).toBe('full');
-        expect(profileName(config, {})).toBe('article');
+        expect(profileName(config, { field: { name: 'other', id: 8 } })).toBe('default');
+        expect(profileName(config, {})).toBe('content');
         expect(profileName(resolveConfig({}), {})).toBe('default');
     });
 });
@@ -62,20 +62,34 @@ describe('profiles, extension options and editor attributes in editors', () => {
     it('uses the content profile for the content field and the TV profile for a TV', () => {
         const server = {
             toolbar: 'bold italic underline',
-            profiles: { simple: { toolbar: 'bold' }, article: { toolbar: 'italic link' } },
-            contentProfile: 'article',
+            profiles: { simple: { toolbar: 'bold' }, content: { toolbar: 'italic link' } },
             tvProfiles: { intro: 'simple' },
             tvs: { tv5: { id: 5, name: 'intro', caption: 'Intro', mediaSource: null } },
         };
         const content = start(server);
         expect(items(content)).toEqual(['italic', 'link']);
-        expect(content.config.profile).toBe('article');
+        expect(content.config.profile).toBe('content');
         manager.destroyAll();
         const tv = start(server, { id: 'tv5' });
         expect(items(tv)).toEqual(['bold']);
         manager.destroyAll();
         const runtime = start(server, { options: { profile: 'simple' } });
         expect(items(runtime)).toEqual(['bold']);
+    });
+
+    it('shows configuration errors once, above the first editor', () => {
+        document.body.innerHTML = '<textarea id="a"></textarea><textarea id="b"></textarea>';
+        manager = new EditorManager(createLogger(false));
+        manager.configure({ toolbar: 'bold', configErrors: ['tiptapeditor.profiles: not a JSON object'] });
+        const first = manager.create('a');
+        manager.create('b');
+        const notices = document.querySelectorAll('[data-tiptapeditor-config-errors]');
+        expect(notices).toHaveLength(1);
+        expect(first.root.contains(notices[0])).toBe(true);
+        expect(notices[0].textContent).toContain('tiptapeditor.profiles: not a JSON object');
+        manager.destroyAll();
+        start({ toolbar: 'bold' });
+        expect(document.querySelector('[data-tiptapeditor-config-errors]')).toBeNull();
     });
 
     it('applies the external config on top of the settings, with its profiles', () => {

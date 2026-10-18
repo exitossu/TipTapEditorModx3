@@ -42,7 +42,7 @@ undo redo | heading | bold italic underline strike code | color highlight
 |---|---|---|
 | `undo` | Отменить | Отменить последнее действие (Ctrl/Cmd+Z). |
 | `redo` | Повторить | Повторить отменённое (Ctrl/Cmd+Shift+Z). |
-| `heading` | Стиль текста | Меню: «Абзац» и заголовки уровней из `tiptapeditor.heading_levels`. |
+| `heading` | Стиль текста | Меню: «Абзац» и заголовки уровней из ключа профиля `headingLevels`. |
 | `paragraph` | Абзац | Превратить блок в обычный абзац. |
 | `h1` … `h6` | Заголовок 1 … Заголовок 6 | Отдельная кнопка для каждого уровня заголовка. |
 | `paragraphClass` | Стиль абзаца | Меню классов для абзацев и заголовков из `tiptapeditor.paragraph_classes`. Без пресетов кнопка не показывается. |
@@ -118,15 +118,15 @@ undo redo | heading | bold italic underline strike code | color highlight
 
 ## Когда кнопка не видна или неактивна
 
-Кнопку можно вписать в панель, но она скроется, если её функция выключена:
+Чтобы убрать кнопку, достаточно не вписывать её в панель. Кроме того, кнопка скроется, если её функция выключена в [профиле](./profiles#profile-keys) (ключ `features`) или ей чего-то не хватает:
 
 | Кнопки | Скрываются, если |
 |---|---|
-| `table` и все команды таблиц | `tiptapeditor.enable_tables` = Нет |
-| `image`, `imageUpload`, `imageUrl` | `tiptapeditor.enable_images` = Нет |
-| `gallery` | `tiptapeditor.enable_gallery` или `tiptapeditor.enable_images` = Нет, или у поля нет ни доступного источника файлов, ни загрузки |
-| `embed` | `tiptapeditor.enable_iframe` = Нет |
-| `fullscreen` | `tiptapeditor.enable_fullscreen` = Нет |
+| `table` и все команды таблиц | `"features": {"tables": false}` |
+| `image`, `imageUpload`, `imageUrl` | `"features": {"images": false}` |
+| `gallery` | `"features": {"gallery": false}` или `{"images": false}`, или у поля нет ни доступного источника файлов, ни загрузки |
+| `embed` | `"features": {"iframe": false}` |
+| `h1` … `h6` | уровня нет в `headingLevels` |
 | `paragraphClass` | `tiptapeditor.paragraph_classes` пуста |
 | `imageUpload` | загрузка выключена (`tiptapeditor.upload_enabled`) или у поля нет источника файлов |
 | `imageUrl` | загрузка выключена или у поля нет источника файлов |
@@ -152,7 +152,7 @@ undo redo | heading | bold italic underline strike code | color highlight
 bold italic link | bulletList orderedList | clearFormatting
 ```
 
-Панель для статей с пресетами абзацев и только двумя уровнями заголовков (`tiptapeditor.heading_levels` = `2,3`):
+Панель для статей с пресетами абзацев и только двумя уровнями заголовков (в профиле `"headingLevels": [2, 3]`):
 
 ```text
 undo redo | heading paragraphClass | bold italic | link modxLink anchor | image gallery table | source fullscreen

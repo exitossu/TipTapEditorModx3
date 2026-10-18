@@ -4,7 +4,7 @@ A rich text editor for the MODX 3 manager built on [Tiptap 3](https://tiptap.dev
 It registers as **TipTapEditor** in the `which_editor` system setting and replaces the resource
 content field and RichText template variables.
 
-> Status: **0.1.0-alpha21, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
+> Status: **0.1.0-alpha22, stage 12b of 14** (menus, paste, embeds, autocomplete, uploads).
 > Documentation: https://exitossu.github.io/TipTapEditorModx3/ (sources in `docs/`, `npm run docs:dev`).
 
 ## Requirements
@@ -68,18 +68,23 @@ The package is written to `core/packages/tiptapeditor-<version>.transport.zip`.
 
 ## System settings
 
-All settings use the `tiptapeditor.` prefix and have English and Russian descriptions.
+All settings use the `tiptapeditor.` prefix and have English and Russian descriptions. They are
+listed in one place, `core/components/tiptapeditor/src/Config/Settings.php`. Only what almost every
+site adjusts is a system setting; everything else (menus, status bar, heading levels, features, tag
+protection, …) is a key of a profile or the external config (see below).
 
 | Area | Settings |
 |---|---|
-| Interface | `toolbar`, `profiles`, `default_profile`, `content_profile`, `tv_profiles`, `heading_levels`, `bubble_menu`, `floating_menu`, `slash_commands`, `statusbar`, `sticky_toolbar`, `enable_fullscreen`, `min_height`, `max_height`, `default_height`, `autogrow`, `content_css` |
-| Content | `enable_tables`, `enable_images`, `enable_gallery`, `gallery_template`, `gallery_templates_path`, `lightbox`, `lightbox_attribute`, `lightbox_label`, `enable_iframe`, `iframe_allowed_attributes`, `iframe_allowed_hosts`, `paste_as_text`, `image_classes`, `link_classes`, `paragraph_classes`, `table_classes`, `preserve_style_attribute` |
-| MODX integration | `protect_modx_syntax`, `protect_fenom_syntax`, `fenom_tags`, `modx_autocomplete`, `fenom_autocomplete`, `links_across_contexts`, `resource_link_format`, `media_source`, `media_url_mode`, `upload_enabled`, `upload_path` |
+| Interface | `toolbar` (empty: the package's toolbar), `profiles`, `tv_profiles`, `content_css`, `min_height`, `max_height` |
+| Content | `iframe_allowed_hosts`, `image_classes`, `link_classes`, `paragraph_classes`, `table_classes`, `gallery_template`, `lightbox`, `lightbox_attribute` |
+| MODX integration | `fenom` (`auto`/`1`/`0`), `upload_enabled`, `upload_path` |
 | System | `external_config`, `debug` |
+| Advanced | `gallery_templates_path`, `fenom_tags`, `links_across_contexts`, `resource_link_format`, `media_source`, `media_url_mode`, `upload_file_prefix` |
 
 Configuration is applied in this order (later wins): defaults → system settings → external config
 → profile → runtime options of `TipTapEditor.create()`. Invalid values are skipped and logged in the
-MODX error log (level WARN); the editor then runs with the rest.
+MODX error log (level WARN); the editor then runs with the rest. Users with the `settings` permission
+also see these errors above the first editor on the page.
 
 ### Profiles
 
@@ -93,17 +98,21 @@ MODX error log (level WARN); the editor then runs with the rest.
 }
 ```
 
-- `tiptapeditor.content_profile`: profile of the resource content field (and other non-TV fields).
+- The profile `content` applies to the resource content field (and other non-TV fields).
 - `tiptapeditor.tv_profiles`: profile per richtext TV, `intro=simple, article_body=article` (one per
   line or comma separated) or JSON `{"intro": "simple"}`; the TV name or `tv<ID>`.
-- `tiptapeditor.default_profile`: everything else (`default`: no profile, just the settings).
+- The profile `default` applies to everything else (no such profile: just the settings).
 - At runtime: `TipTapEditor.create(textarea, { profile: 'simple' })`.
 
-A profile may set: `toolbar` (string or list), `headingLevels`, `colors`, `highlightColors`,
-`stickyToolbar`, `features` (`{"tables": false, "images": false, "fullscreen": false}`),
-`minHeight`, `maxHeight`, `defaultHeight`, `autogrow`, `linkClasses`, `imageClasses`,
-`tableClasses`, `paragraphClasses`, `imageAlignClasses`, `resourceLinkFormat`, `contentCss`,
-`preserveStyleAttribute`, `extensions`, `editorProps`. Other keys are ignored.
+A profile (and the external config) may set: `toolbar` (string or list), `headingLevels`, `colors`,
+`highlightColors`, `stickyToolbar`, `features` (`{"tables": false, "images": false, "gallery": false,
+"iframe": false}`), `minHeight`, `maxHeight` (0 = no limit, equal values = fixed height),
+`bubbleMenu`, `floatingMenu`, `slashCommands`, `statusbar`, `pasteAsText`, `linkClasses`,
+`imageClasses`, `tableClasses`, `paragraphClasses`, `imageAlignClasses`, `resourceLinkFormat`,
+`contentCss`, `preserveStyleAttribute`, `iframeAllowedAttributes`, `iframeAllowedHosts`,
+`protectModxSyntax`, `protectFenomSyntax`, `fenomTags`, `modxAutocomplete`, `fenomAutocomplete`,
+`mediaUrlMode`, `lightbox`, `lightboxAttribute`, `lightboxLabel`, `galleryTemplate`, `extensions`,
+`editorProps`. Other keys are ignored.
 
 ### External config
 
@@ -147,15 +156,14 @@ fetched by the browser of the manager user (same origin, or with CORS).
   HTML block).
 - `tiptapeditor.paragraph_classes`: class presets for paragraphs and headings (`{"lead": "Lead"}` or
   `lead, note`), offered by the `paragraphClass` toolbar menu; other classes of the element stay.
-- `tiptapeditor.preserve_style_attribute` (on by default): inline `style` attributes are kept verbatim.
-  Off: they may be dropped when the content is edited (content with styles still opens).
+- `preserveStyleAttribute` (profile key, `true` by default): inline `style` attributes are kept verbatim.
+  `false`: they may be dropped when the content is edited (content with styles still opens).
 
 ## Toolbar configuration
 
 `tiptapeditor.toolbar` lists toolbar items separated by spaces; `|` starts a new group. Names are
-case-insensitive, unknown names are skipped. Changing the setting needs no rebuild.
-
-Default:
+case-insensitive, unknown names are skipped. Changing the setting needs no rebuild. Empty (the
+default) is the package's toolbar, which gets new buttons with updates:
 
 ```
 undo redo | heading | bold italic underline strike code | color highlight | superscript subscript
@@ -166,14 +174,14 @@ undo redo | heading | bold italic underline strike code | color highlight | supe
 | Item | Does |
 |---|---|
 | `undo` `redo` | history |
-| `heading` | menu: paragraph and the levels from `tiptapeditor.heading_levels` |
+| `heading` | menu: paragraph and the levels from the profile key `headingLevels` |
 | `paragraph` `h1` ... `h6` | single block types |
 | `bold` `italic` `underline` `strike` `code` `superscript` `subscript` | inline formatting |
 | `color` `highlight` | palettes, with "remove color" |
 | `align` | menu; or `alignLeft` `alignCenter` `alignRight` `alignJustify` |
 | `bulletList` `orderedList` `blockquote` `horizontalRule` `codeBlock` | blocks |
 | `clearFormatting` | removes marks and block formatting |
-| `fullscreen` | fullscreen mode, Esc leaves it (`tiptapeditor.enable_fullscreen`) |
+| `fullscreen` | fullscreen mode, Esc leaves it |
 | `link` | link dialog (Ctrl/Cmd+K) |
 | `modxLink` | link dialog opened on the MODX resource search |
 | `unlink` | removes the link under the cursor |
@@ -181,9 +189,9 @@ undo redo | heading | bold italic underline strike code | color highlight | supe
 | `paragraphClass` | menu of the classes from `tiptapeditor.paragraph_classes` |
 | `image` | image dialog: Media Browser, upload from computer, copy by link |
 | `imageUpload` `imageUrl` | optional direct buttons: image from computer / by link (need `upload_enabled`) |
-| `gallery` | gallery dialog (`enable_gallery`) |
+| `gallery` | gallery dialog (`features.gallery`) |
 | `file` | Media Browser: link to a file |
-| `embed` | video or iframe (`enable_iframe`) |
+| `embed` | video or iframe (`features.iframe`) |
 | `source` | HTML source mode |
 | `table` | insert a table (dialog); in a table: table properties |
 | `addRowBefore` `addRowAfter` `deleteRow` `addColumnBefore` `addColumnAfter` `deleteColumn` `toggleHeaderRow` `toggleHeaderColumn` `mergeCells` `splitCell` `tableProperties` `deleteTable` | table commands; they are on the table toolbar anyway, but can also be placed in the main toolbar |
@@ -366,12 +374,12 @@ get the file link button.
 - Kept as HTML blocks, because the editor cannot show them unchanged: tables with `<caption>`,
   `<colgroup>`, attributes on `<thead>`/`<tbody>`/`<tfoot>`, event handler attributes, or MODX/Fenom
   constructs between rows (`{foreach}` around `<tr>`). All tables are HTML blocks when
-  `tiptapeditor.enable_tables` is off.
+  a profile switches tables off (`"features": {"tables": false}`).
 
 ## MODX and Fenom syntax
 
 Template code in the content is kept exactly as written, character for character, also when the
-text around it is edited (`tiptapeditor.protect_modx_syntax`, `tiptapeditor.protect_fenom_syntax`).
+text around it is edited (profile key `protectModxSyntax`, system setting `tiptapeditor.fenom`).
 
 - **MODX tags** `[[…]]` with every prefix (`*`, `++`, `~`, `$`, `%`, `+`, `-`, `!`, `#`), output
   filters, properties and nested tags: `[[!pdoResources? &tpl=`@INLINE <li>[[+pagetitle]]</li>`]]`
@@ -428,15 +436,15 @@ The `source` toolbar button switches the editor to the HTML source and back.
 
 ## Menus, slash commands, status bar
 
-- **Bubble menu** (`bubble_menu`): bold, italic, underline, strike, code and link over selected
+- **Bubble menu** (`bubbleMenu`): bold, italic, underline, strike, code and link over selected
   text. Not shown in code, source mode or dialogs.
-- **Floating menu** (`floating_menu`): headings, lists, quote, code block, image, table and embed
+- **Floating menu** (`floatingMenu`): headings, lists, quote, code block, image, table and embed
   next to an empty paragraph.
-- **Slash commands** (`slash_commands`): `/` at the start of an empty paragraph opens a list
+- **Slash commands** (`slashCommands`): `/` at the start of an empty paragraph opens a list
   (paragraph, H2, H3, lists, quote, image, table, code block, rule, embed), filtered by typing.
-- In a profile or the external config each of the three can be `true`/`false` or its own list of
+- All three are on by default. In a profile or the external config each can be `true`/`false` or its own list of
   toolbar items, e.g. `"bubbleMenu": "bold italic link"`. Items whose feature is off are hidden.
-- **Status bar** (`statusbar`): element path (`p > strong`), words and characters.
+- **Status bar** (profile key `statusbar`, off by default): element path (`p > strong`), words and characters.
 - Menus are placed on `<body>` above the manager panels; the editor itself stays scoped.
 
 ## Paste
@@ -448,17 +456,17 @@ The `source` toolbar button switches the editor to the HTML source and back.
 - Pictures that exist only on the clipboard (`data:`, `blob:`, `file:`, `cid:`) are left out with a
   message: content never gets base64 images.
 - Copy/paste inside the editor is not cleaned (it keeps classes and attributes).
-- `paste_as_text`: every paste is inserted as plain text.
+- `pasteAsText` (profile key): every paste is inserted as plain text.
 
 ## Embeds (iframe)
 
-- `enable_iframe` adds the `embed` toolbar button. The dialog takes a URL or `<iframe>` code plus
+- The `embed` toolbar button (`features.iframe`, on by default). The dialog takes a URL or `<iframe>` code plus
   width, height, title and fullscreen. YouTube, VK Video and Rutube links are converted to their
   player URL (`youtu.be/ID?t=30` → `https://www.youtube.com/embed/ID?start=30`).
 - Iframes are shown as cards with the host and size and are **never loaded in the manager**.
   Double click or Enter edits; unchanged iframes are saved exactly as they were.
 - `iframe_allowed_hosts`: comma-separated hosts (subdomains included); empty = any http(s) host.
-  `iframe_allowed_attributes`: attributes kept on an iframe; event handlers (`on*`) never are.
+  `iframeAllowedAttributes` (profile key): attributes kept on an iframe; event handlers (`on*`) never are.
   An iframe outside these rules is kept as an HTML block instead of being dropped.
 - More providers: `match` gets the typed text (a string) and returns the iframe `src` or null:
   `TipTapEditor.registerEmbedProvider({ name: 'example', match: (input) => {
@@ -466,7 +474,7 @@ The `source` toolbar button switches the editor to the HTML source and back.
 
 ## MODX and Fenom autocomplete
 
-`modx_autocomplete` / `fenom_autocomplete` suggest while typing in the text:
+`modxAutocomplete` (on by default) / `fenomAutocomplete` (from `tiptapeditor.fenom`) suggest while typing in the text:
 
 | Typed | Suggestions |
 |---|---|
@@ -494,7 +502,7 @@ folders; `upload_maxsize` applies.
 
 `upload_path` and `upload_file_prefix` may use placeholders, filled in on the server for each
 upload (`Image/UploadFolder`, `Media\UploadPath`): `{id}` `{pid}` `{alias}` `{palias}` `{context}`
-`{tid}` `{uid}` `{rand}` (`upload_rand_length` characters) `{t}` `{y}` `{m}` `{d}` `{h}` `{i}` `{s}`.
+`{tid}` `{uid}` `{rand}` (6 characters; `{rand:N}` for N, 1–32) `{t}` `{y}` `{m}` `{d}` `{h}` `{i}` `{s}`.
 `{id}` and `{alias}` need a saved resource. Values cannot add or leave folder levels.
 
 - **Drag and drop or paste** image files into the text: uploaded through MODX
@@ -524,7 +532,7 @@ upload (`Image/UploadFolder`, `Media\UploadPath`): `{id}` `{pid}` `{alias}` `{pa
   The attribute is whatever the site's lightbox script needs, set in `lightbox_attribute`
   (`data-fancybox`, `data-lightbox`, …; empty = a plain link). A single image gets it without a
   value, a gallery with one group name for all its pictures (`data-fancybox="gallery-3fa9c1"`).
-  `lightbox_label` sets the aria-label (`{alt}` = alt text or caption).
+  The profile key `lightboxLabel` sets the aria-label (`{alt}` = alt text or caption).
 - **Gallery** (`gallery` toolbar button): pick several images in the Media Browser at once
   (Ctrl/Shift+click) or upload them from the computer, order them, give each an alt text and
   caption, choose the template and "open larger". In the editor a gallery is a card with

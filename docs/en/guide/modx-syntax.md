@@ -59,7 +59,7 @@ Some cases where a regular element becomes an HTML block:
 - a tag inside a tag (`<li[[+attr]]>`) or a double quote inside a tag in an attribute;
 - a table with `<caption>`, `<colgroup>`, attributes on `<thead>`/`<tbody>`/`<tfoot>`, or MODX/Fenom code between rows;
 - a figure that is not one image with a caption;
-- an iframe outside `tiptapeditor.iframe_allowed_hosts` or `iframe_allowed_attributes`.
+- an iframe outside `tiptapeditor.iframe_allowed_hosts` or the allowed iframe attributes (`iframeAllowedAttributes`).
 
 Paragraphs, headings, quotes, lists, links and inline formatting keep their attributes (`id`, `class`, `data-*`, `aria-*`, `style`, …) and stay editable: `<p class="lead">` is a normal paragraph.
 
@@ -101,14 +101,14 @@ Suggestions come from MODX with the user's rights: `view_chunk`, `view_snippet`,
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `tiptapeditor.protect_modx_syntax` | Yes | Protect MODX tags. |
-| `tiptapeditor.protect_fenom_syntax` | Yes | Protect Fenom. |
-| `tiptapeditor.fenom_tags` | (empty) | Names of your own Fenom tags or functions. |
-| `tiptapeditor.modx_autocomplete` | Yes | Suggestions for MODX tags. |
-| `tiptapeditor.fenom_autocomplete` | No | Suggestions for Fenom. |
+| `tiptapeditor.fenom` | `auto` | `auto`: Fenom is protected; Fenom suggestions are on when pdoTools parses Fenom (`pdotools_fenom_default` or `pdotools_fenom_parser`). `1`: protection and suggestions always. `0`: Fenom is ordinary text. |
+| `tiptapeditor.fenom_tags` | (empty) | Names of your own Fenom tags or functions (Advanced area). |
+| `tiptapeditor.resource_link_format` | `[[~{id}]]` | How a link to a resource from the link dialog is written (Advanced area). |
+
+A [profile or the external config](./profiles#what-a-profile-may-set) can set the rest: `protectModxSyntax` (protect MODX tags, default `true`), `modxAutocomplete` (suggest MODX tags, `true`), and `protectFenomSyntax` and `fenomAutocomplete` apart from `tiptapeditor.fenom`.
 
 ::: tip Keep protection on
-With protection off, tags are ordinary text: `&` inside them can be escaped, and Fenom can be moved around. Leave both protection settings on unless the site uses neither MODX tags nor Fenom in content.
+With protection off, tags are ordinary text: `&` inside them can be escaped, and Fenom can be moved around. Leave protection on unless the site uses neither MODX tags nor Fenom in content.
 :::
 
 See [System settings](./settings) for the full list.

@@ -19,6 +19,9 @@ $pages = [
         'intro' => "Все настройки находятся в разделе «Системные настройки», пространство имён `tiptapeditor`. "
             . "Их можно переопределить в настройках контекста, группы пользователей или пользователя. "
             . "При обновлении пакета значения не сбрасываются.\n\n"
+            . "Здесь только то, что почти каждый сайт меняет под себя. Меню, строка состояния, уровни заголовков, "
+            . "включение функций, защита тегов MODX и другое задаются в [профилях и внешнем JSON](./profiles#profile-keys). "
+            . "Редко нужные настройки собраны в разделе «Расширенные».\n\n"
             . "::: tip\nСтраница собирается автоматически из исходников пакета (`npm run docs:generate`).\n:::",
         'head' => ['Ключ', 'Описание', 'По умолчанию'],
         'yes' => 'Да', 'no' => 'Нет', 'empty' => '(пусто)',
@@ -28,6 +31,9 @@ $pages = [
         'title' => 'System settings',
         'intro' => "All settings are under System Settings, namespace `tiptapeditor`. They can be overridden "
             . "in context, user group or user settings. Upgrades never reset their values.\n\n"
+            . "Only what almost every site adjusts is a system setting. Menus, the status bar, heading levels, "
+            . "features, MODX tag protection and more are set in [profiles and the external JSON config](./profiles#what-a-profile-may-set). "
+            . "Rarely needed settings are in the Advanced area.\n\n"
             . "::: tip\nThis page is generated from the package sources (`npm run docs:generate`).\n:::",
         'head' => ['Key', 'Description', 'Default'],
         'yes' => 'Yes', 'no' => 'No', 'empty' => '(empty)',

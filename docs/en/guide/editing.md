@@ -38,14 +38,14 @@ Entries for features that are switched off (or that need a Media Source you have
 
 ## Status bar
 
-If the **Status bar** setting is on, a line under the text shows the element path at the cursor (for example `p > strong`), and the number of words and characters.
+If the status bar is on in a profile (`"statusbar": true`), a line under the text shows the element path at the cursor (for example `p > strong`), and the number of words and characters.
 
 ## Pasting
 
 - Text pasted from Word or Google Docs is cleaned: Office markup, fonts, wrapper spans and inline styles are removed. Bold, italic, underline, strikethrough, superscript and subscript written as styles become real formatting. Word list paragraphs become real (nested) lists. The alignment of paragraphs and headings is kept.
 - Pictures that exist only on the clipboard (not on a web site) are left out, and a message tells you so. Insert them with the **Image** button, or drop the image files into the editor if uploads are enabled. The content never gets base64 images.
 - Copying and pasting inside the editor keeps classes and attributes.
-- If the administrator turned on **Paste as text**, every paste is inserted as plain text.
+- If the administrator turned on `"pasteAsText": true` in a profile, every paste is inserted as plain text.
 - A pasted MODX tag or Fenom expression becomes a protected badge (see [MODX and Fenom tags](./modx-syntax)).
 
 ## Links

@@ -99,9 +99,9 @@ describe('Toolbar', () => {
 
     it('hides items whose feature is switched off', () => {
         manager.destroyAll();
-        manager.configure({ toolbar: 'bold fullscreen', features: { fullscreen: false } });
+        manager.configure({ toolbar: 'bold table', features: { tables: false } });
         instance = manager.create('ta');
-        expect(button('fullscreen')).toBeNull();
+        expect(button('table')).toBeNull();
         expect(button('bold')).not.toBeNull();
     });
 });

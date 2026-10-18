@@ -2,7 +2,7 @@
 
 Шаблонный код в содержимом — вызовы сниппетов, чанки, плейсхолдеры, ссылки `[[~12]]`, условия и циклы Fenom — сохраняется **ровно как написан**, символ в символ, даже если вы правите текст вокруг. Редактор не экранирует `&`, `<` и кавычки внутри тегов и не разбивает их форматированием.
 
-За это отвечают настройки `tiptapeditor.protect_modx_syntax` и `tiptapeditor.protect_fenom_syntax` (обе включены по умолчанию).
+Защита включена по умолчанию. Для Fenom её задаёт настройка `tiptapeditor.fenom`, для тегов MODX — ключ профиля `protectModxSyntax`.
 
 ## Что считается тегом
 
@@ -108,12 +108,11 @@
 
 | Настройка | По умолчанию | Что делает |
 |---|---|---|
-| `tiptapeditor.protect_modx_syntax` | Да | Защита тегов MODX. |
-| `tiptapeditor.protect_fenom_syntax` | Да | Защита конструкций Fenom. |
-| `tiptapeditor.fenom_tags` | пусто | Имена собственных тегов и функций Fenom. |
-| `tiptapeditor.modx_autocomplete` | Да | Подсказки тегов MODX. |
-| `tiptapeditor.fenom_autocomplete` | Нет | Подсказки Fenom. |
-| `tiptapeditor.resource_link_format` | `[[~{id}]]` | Как записывается ссылка на ресурс из диалога ссылки. |
+| `tiptapeditor.fenom` | `auto` | `auto` — конструкции Fenom защищены, подсказки Fenom включены, если pdoTools обрабатывает Fenom (`pdotools_fenom_default` или `pdotools_fenom_parser`). `1` — защита и подсказки всегда. `0` — Fenom считается обычным текстом. |
+| `tiptapeditor.fenom_tags` | пусто | Имена собственных тегов и функций Fenom (раздел «Расширенные»). |
+| `tiptapeditor.resource_link_format` | `[[~{id}]]` | Как записывается ссылка на ресурс из диалога ссылки (раздел «Расширенные»). |
+
+В [профиле или внешнем JSON](./profiles#profile-keys) можно задать и остальное: `protectModxSyntax` (защита тегов MODX, по умолчанию `true`), `modxAutocomplete` (подсказки тегов MODX, `true`), а также `protectFenomSyntax` и `fenomAutocomplete` отдельно от `tiptapeditor.fenom`.
 
 ::: warning Не выключайте защиту, если используете теги
 Без защиты теги становятся обычным текстом: их можно случайно разрезать форматированием, а `&` в параметрах сниппета после правки превратится в `&amp;`. Выключайте защиту, только если на сайте нет MODX-тегов или Fenom в содержимом (например, нужна запись вида `{$...}` как простого текста).

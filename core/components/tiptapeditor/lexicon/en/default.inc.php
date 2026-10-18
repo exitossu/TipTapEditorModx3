@@ -7,6 +7,7 @@
 $_lang['tiptapeditor'] = 'TipTapEditor';
 $_lang['tiptapeditor.editor_label'] = 'Rich text editor';
 $_lang['tiptapeditor.editor_failed'] = 'The editor could not be started. You can keep editing in the plain text field.';
+$_lang['tiptapeditor.config_errors'] = 'TipTapEditor configuration problems (also in the MODX error log):';
 $_lang['tiptapeditor.content_kept_as_source'] = 'This content contains markup the visual editor cannot show without changing it. It stays in the plain text field so nothing is lost.';
 
 // Toolbar

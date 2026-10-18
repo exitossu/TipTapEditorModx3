@@ -2,7 +2,7 @@ import { ContentKeptAsSource, createEditor } from './createEditor.js';
 import { configData, profileName, resolveConfig } from './config.js';
 import { TextareaBinding } from './TextareaBinding.js';
 import { removeNotice, showNotice } from '../ui/Notice.js';
-import { isRendered, resolveTextareas } from '../utils/dom.js';
+import { createElement, isRendered, resolveTextareas } from '../utils/dom.js';
 import { emit } from '../utils/events.js';
 import { createTranslator } from '../utils/i18n.js';
 import { hasOutdatedGalleries } from '../extensions/Gallery.js';
@@ -76,6 +76,7 @@ export class EditorManager {
             const instance = { editor, root, textarea, binding, source, config, field, dispose };
 
             removeNotice(textarea);
+            this.showConfigErrors(root, config);
             textarea.classList.add(HIDDEN_CLASS);
             textarea.setAttribute(MARKER, '1');
             textarea.setAttribute('aria-hidden', 'true');
@@ -100,6 +101,23 @@ export class EditorManager {
             }
             return null;
         }
+    }
+
+    /**
+     * Configuration problems (invalid JSON, unknown keys, missing files), once per page at the
+     * top of the first editor. The server sends them only to users who may change settings.
+     */
+    showConfigErrors(root, config) {
+        const errors = Array.isArray(config.configErrors) ? config.configErrors : [];
+        if (!errors.length || root.ownerDocument.querySelector('[data-tiptapeditor-config-errors]')) {
+            return;
+        }
+        const notice = createElement('div', 'tiptapeditor-notice tiptapeditor-notice--warning', {
+            role: 'status',
+            'data-tiptapeditor-config-errors': '',
+        });
+        notice.textContent = `${this.t('config_errors')} ${errors.map(String).join(' · ')}`;
+        root.prepend(notice);
     }
 
     destroy(target) {

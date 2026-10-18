@@ -92,7 +92,7 @@ Uploads are off by default. Turn on `tiptapeditor.upload_enabled` to allow them.
 | `{context}` | context key |
 | `{tid}` | TV ID; empty for the content field |
 | `{uid}` | user ID |
-| `{rand}` | random string, `tiptapeditor.upload_rand_length` characters (default 6) |
+| `{rand}`, `{rand:N}` | random string of 6 (or N, 1–32) characters: `{rand:10}` |
 | `{t}` | timestamp |
 | `{y}` `{m}` `{d}` | year, month, day |
 | `{h}` `{i}` `{s}` | hour, minute, second |
@@ -142,7 +142,8 @@ You can edit the caption in the dialog or directly in the text. Existing figures
 |---|---|
 | `tiptapeditor.lightbox` | **Open larger on click** is ticked for new images and galleries. You can still change it per image and per gallery. Default: off. |
 | `tiptapeditor.lightbox_attribute` | The attribute your lightbox script looks for, for example `data-fancybox` or `data-lightbox`. Empty: a plain link. |
-| `tiptapeditor.lightbox_label` | The `aria-label` of the link; `{alt}` is replaced with the alt text or the caption. Empty: "Open image: {alt}" in the manager language. |
+
+The link's `aria-label` for screen readers is "Open image: {alt}" in the manager language; the profile key `lightboxLabel` sets your own (`{alt}` = the alt text or caption).
 
 With `lightbox_attribute` set to `data-fancybox`, a single image gets the attribute with an empty value:
 
@@ -187,7 +188,7 @@ A video takes the place of `{image}` in the template:
 ```
 
 - **A video file** is a `<video>` with player controls; the browser loads only the first frame until the visitor presses play.
-- **A video of a service** is the player's `<iframe>`. The [embed](#embeds-video-and-iframes) rules apply: `tiptapeditor.enable_iframe` must be on, the site must be in `tiptapeditor.iframe_allowed_hosts` (when the list is set), and the `<iframe>` keeps only the attributes of `tiptapeditor.iframe_allowed_attributes`. A gallery with a video these rules refuse stays an HTML block, unchanged.
+- **A video of a service** is the player's `<iframe>`. The [embed](#embeds-video-and-iframes) rules apply: embeds must not be switched off (`"features": {"iframe": false}`), the site must be in `tiptapeditor.iframe_allowed_hosts` (when the list is set), and the `<iframe>` keeps only the allowed attributes (`iframeAllowedAttributes`). A gallery with a video these rules refuse stays an HTML block, unchanged.
 - **Open larger on click** adds the link to pictures only; a video plays where it is.
 - The size of videos comes from the site's CSS, for example `.gallery video, .gallery iframe { width: 100%; aspect-ratio: 16 / 9; }`.
 
@@ -256,8 +257,8 @@ Settings:
 
 | Setting | Meaning |
 |---|---|
-| `tiptapeditor.enable_iframe` | Embeds on or off (default on). |
 | `tiptapeditor.iframe_allowed_hosts` | Comma separated hosts allowed in the iframe `src`, subdomains included (`youtube.com` also allows `www.youtube.com`). Empty: any `http(s)` host. |
-| `tiptapeditor.iframe_allowed_attributes` | Attributes kept on an iframe. Default: `src,width,height,allow,allowfullscreen,loading,title,name,referrerpolicy,frameborder,class,id,style`. Event handlers (`on*`) are never kept. |
+| `"features": {"iframe": false}` in a [profile](./profiles#what-a-profile-may-set) | Switches embeds off. |
+| `iframeAllowedAttributes` (profile key) | Attributes kept on an iframe. Default: `src,width,height,allow,allowfullscreen,loading,title,name,referrerpolicy,frameborder,class,id,style`. Event handlers (`on*`) are never kept. |
 
 An iframe in existing content that breaks these rules is not dropped: it is kept as an HTML block. Developers can add more video providers with [`TipTapEditor.registerEmbedProvider()`](../dev/api#registerembedprovider).

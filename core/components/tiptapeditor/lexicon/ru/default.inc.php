@@ -7,6 +7,7 @@
 $_lang['tiptapeditor'] = 'TipTapEditor';
 $_lang['tiptapeditor.editor_label'] = 'Визуальный редактор';
 $_lang['tiptapeditor.editor_failed'] = 'Не удалось запустить редактор. Можно продолжить редактирование в обычном текстовом поле.';
+$_lang['tiptapeditor.config_errors'] = 'Ошибки в настройках TipTapEditor (подробности в журнале ошибок MODX):';
 $_lang['tiptapeditor.content_kept_as_source'] = 'В этом содержимом есть разметка, которую визуальный редактор не может показать без изменений. Оно остаётся в обычном текстовом поле, чтобы ничего не потерялось.';
 
 // Toolbar

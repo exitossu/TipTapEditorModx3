@@ -258,7 +258,6 @@ export const DEFAULT_HIGHLIGHTS = ['#fff3a3', '#ffd6a5', '#caffbf', '#9bf6ff', '
     },
     {
         name: 'fullscreen', label: 'fullscreen', icon: 'maximize', shortcut: 'Esc',
-        feature: 'fullscreen',
         action: (editor, context) => context.fullscreen.toggle(),
         active: (editor, context) => context.fullscreen.active,
         enabled: () => true,
