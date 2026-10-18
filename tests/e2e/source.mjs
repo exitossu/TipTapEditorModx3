@@ -9,8 +9,8 @@ const php = (script, ...args) => execFileSync('php', [fileURLToPath(new URL(scri
 const db = (id) => JSON.parse(php('./read-resource.php', String(id)));
 const asSubmitted = (value) => value.replace(/\r?\n/g, '\r\n');
 
-php('./set-system-settings.php', 'which_editor', 'TipTapEditor', 'use_editor', '1', 'tiptapeditor.protect_modx_syntax', '1',
-    'tiptapeditor.protect_fenom_syntax', '1', 'tiptapeditor.toolbar', 'undo redo | bold italic | source fullscreen');
+php('./set-system-settings.php', 'which_editor', 'TipTapEditor', 'use_editor', '1',
+    'tiptapeditor.fenom', 'auto', 'tiptapeditor.toolbar', 'undo redo | bold italic | source fullscreen');
 const { resources, fixtures } = JSON.parse(php('./fixtures-setup.php'));
 
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined });

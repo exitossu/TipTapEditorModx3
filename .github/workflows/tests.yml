@@ -1,0 +1,34 @@
+name: Tests
+
+# Unit tests, the bundle build and PHP syntax on every push and pull request. The bundle in
+# assets/components/tiptapeditor/dist is committed (the transport package ships it), so the build
+# must reproduce it exactly: run "npm run build" and commit dist when this check fails.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - run: npm ci
+      - name: PHP syntax
+        run: find core _build scripts -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+      - run: npm test
+      - run: npm run build
+      - name: Committed bundle matches the sources
+        run: git diff --exit-code -- assets/components/tiptapeditor/dist

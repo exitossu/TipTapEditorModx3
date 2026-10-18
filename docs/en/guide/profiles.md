@@ -1,6 +1,8 @@
 # Profiles and configuration
 
-Most sites need only the [system settings](./settings). Profiles and the external config are for sites where different fields need different editors, or where the configuration should live in a file.
+The [system settings](./settings) hold only what almost every site adjusts: toolbar, CSS, classes, uploads, galleries. Everything else (menus, status bar, heading levels, features, tag protection and so on) is set in **profiles** and the **external JSON config**; the keys are listed [below](#what-a-profile-may-set).
+
+Profiles are also how different fields get different editors: a full toolbar for an article, three buttons for a teaser.
 
 ## Order of configuration
 
@@ -12,7 +14,7 @@ The configuration of an editor is built in this order; a later step wins:
 4. the profile of the field;
 5. runtime options of `TipTapEditor.create()` (for developers).
 
-Invalid values are skipped and logged in the MODX error log (level WARN). The editor then runs with the rest.
+Invalid values are skipped and logged in the MODX error log (level WARN). The editor then runs with the rest. Users with the `settings` permission (who may change system settings) also see these errors above the first editor on the page.
 
 ## Profiles
 
@@ -35,11 +37,13 @@ A profile is a named set of options. Define profiles in `tiptapeditor.profiles` 
 
 ### Which field uses which profile
 
-| Setting | Applies to |
+A profile is chosen by its name; there are no settings for it:
+
+| Profile | Applies to |
 |---|---|
-| `tiptapeditor.content_profile` | The resource content field (and other fields that are not TVs). Empty: the default profile. |
-| `tiptapeditor.tv_profiles` | Richtext TVs, by TV name or by `tv<ID>`. |
-| `tiptapeditor.default_profile` | Every other field. The default value `default` means: no profile, just the settings, unless you define a profile named `default`. |
+| from `tiptapeditor.tv_profiles` | Richtext TVs, by TV name or by `tv<ID>` (see below). |
+| `content` | The resource content field and other fields that are not TVs. Without such a profile: `default`. |
+| `default` | Every other field. Without such a profile: just the settings. |
 
 `tiptapeditor.tv_profiles` accepts a JSON object:
 
@@ -56,23 +60,35 @@ article_body=article
 
 ### What a profile may set
 
-| Key | Value |
-|---|---|
-| `toolbar` | Toolbar string or JSON list (see [Toolbar](./toolbar)). |
-| `headingLevels` | `[2, 3, 4]` or `"2,3,4"`. |
-| `colors`, `highlightColors` | Lists of colors for the **Text color** and **Highlight** palettes, for example `["#000000", "#c00000"]`. |
-| `stickyToolbar`, `autogrow`, `statusbar`, `pasteAsText`, `preserveStyleAttribute` | `true` / `false`. |
-| `minHeight`, `maxHeight`, `defaultHeight` | Pixels. |
-| `features` | Switch features off: `{"tables": false, "images": false, "gallery": false, "iframe": false, "fullscreen": false}`. |
-| `bubbleMenu`, `floatingMenu`, `slashCommands` | See [Menus](#menus). |
-| `linkClasses`, `imageClasses`, `tableClasses`, `paragraphClasses` | Class presets (see [below](#attributes-and-class-presets)). |
-| `imageAlignClasses` | Classes written for image alignment, default `{"left": "align-left", "center": "align-center", "right": "align-right"}`. |
-| `resourceLinkFormat` | The `href` for a MODX resource in the link dialog, default `[[~{id}]]`; `{context}` and `{uri}` are also replaced. |
-| `contentCss` | Stylesheets for the editing area (see [Content CSS](#content-css)). |
-| `iframeAllowedHosts`, `iframeAllowedAttributes` | As the settings of the same name. |
-| `modxAutocomplete`, `fenomAutocomplete` | `true` / `false`. |
-| `lightbox`, `lightboxAttribute`, `lightboxLabel`, `galleryTemplate` | As the settings of the same name (see [Images, galleries, files](./media)). |
-| `extensions`, `editorProps` | See [External config](#external-config). |
+The external config takes the same keys. Keys without a system setting are set only here.
+
+| Key | Value | Default | System setting |
+|---|---|---|---|
+| `toolbar` | Toolbar string or JSON list (see [Toolbar](./toolbar)). | the package's toolbar | `toolbar` |
+| `headingLevels` | `[2, 3, 4]` or `"2,3,4"`. | `[1, 2, 3, 4, 5, 6]` | — |
+| `colors`, `highlightColors` | Lists of colors for the **Text color** and **Highlight** palettes, for example `["#000000", "#c00000"]`. | built in | — |
+| `stickyToolbar` | Keep the toolbar visible while scrolling. | `true` | — |
+| `features` | Content the editor understands: `{"tables": false, "images": false, "gallery": false, "iframe": false}`. Switched-off content stays in the text as a raw HTML block, nothing is lost. | all `true` | — |
+| `minHeight`, `maxHeight` | Height of the editing area in pixels; `maxHeight: 0` is no limit, equal values are a fixed height. | `200`, `700` | `min_height`, `max_height` |
+| `bubbleMenu`, `floatingMenu`, `slashCommands` | See [Menus](#menus). | `true` | — |
+| `statusbar` | Status bar (words, characters, element path). | `false` | — |
+| `pasteAsText` | Paste plain text only. | `false` | — |
+| `linkClasses`, `imageClasses`, `tableClasses`, `paragraphClasses` | Class presets (see [below](#attributes-and-class-presets)). | — | `*_classes` |
+| `imageAlignClasses` | Classes written for image alignment. | `{"left": "align-left", "center": "align-center", "right": "align-right"}` | — |
+| `resourceLinkFormat` | The `href` for a MODX resource in the link dialog; `{context}` and `{uri}` are also replaced. | `[[~{id}]]` | `resource_link_format` |
+| `contentCss` | Stylesheets for the editing area (see [Content CSS](#content-css)). | — | `content_css` |
+| `preserveStyleAttribute` | Keep `style` attributes unchanged. | `true` | — |
+| `iframeAllowedAttributes` | Allowed iframe attributes, comma separated (`on*` are always removed). | `src,width,height,allow,allowfullscreen,loading,title,name,referrerpolicy,frameborder,class,id,style` | — |
+| `iframeAllowedHosts` | Allowed iframe hosts. | any | `iframe_allowed_hosts` |
+| `protectModxSyntax` | Protect MODX tags (see [MODX and Fenom tags](./modx-syntax)). | `true` | — |
+| `protectFenomSyntax`, `fenomAutocomplete` | Protect Fenom, suggest Fenom variables. | from `fenom` | `fenom` |
+| `fenomTags` | Your own Fenom tags. | — | `fenom_tags` |
+| `modxAutocomplete` | Suggest MODX tags. | `true` | — |
+| `mediaUrlMode` | `relative` or `root` for file URLs. | `relative` | `media_url_mode` |
+| `lightbox`, `lightboxAttribute` | "Open larger" links (see [Images, galleries, files](./media)). | `false`, — | `lightbox`, `lightbox_attribute` |
+| `lightboxLabel` | `aria-label` of the link, `{alt}` = the image text. | "Open image: {alt}" | — |
+| `galleryTemplate` | Template of new galleries. | `grid` | `gallery_template` |
+| `extensions`, `editorProps` | See [External config](#external-config). | — | — |
 
 Other keys are ignored (and logged).
 
@@ -98,7 +114,7 @@ The default items:
 | Floating menu | `h2 h3 bulletList orderedList blockquote codeBlock image gallery table embed` |
 | Slash commands | `paragraph h2 h3 bulletList orderedList blockquote image gallery table codeBlock horizontalRule embed` |
 
-Items whose feature is off are hidden. The system settings `tiptapeditor.bubble_menu`, `floating_menu` and `slash_commands` only switch the menus on or off.
+Items whose feature is off are hidden.
 
 ## External config
 
@@ -124,7 +140,7 @@ Items whose feature is off are hidden. The system settings `tiptapeditor.bubble_
 
 Switch an editor extension off (`false`) or pass it options (plain data) by its name. This also works for extensions that other extras register. Examples of names: `highlight`, `color`, `subscript`, `superscript`, `bold`, `italic`, `strike`, `underline`, `heading`, `link`, `blockquote`, `codeBlock`, `horizontalRule`.
 
-Heading levels always come from `headingLevels` (or `tiptapeditor.heading_levels`), not from the options of `heading`.
+Heading levels always come from `headingLevels`, not from the options of `heading`.
 
 The extensions your content depends on cannot be switched off: HTML blocks, MODX/Fenom tokens, paragraphs written without `<p>`, preserved attributes, paste cleanup and the file drop guard.
 
@@ -150,7 +166,7 @@ Only `editorProps.attributes` is read: extra attributes of the editing area. All
 
 Paragraphs, headings, quotes, lists, list items, code blocks, horizontal rules, links and inline formatting keep every attribute the editor has no field for: `id`, `class`, `title`, `lang`, `dir`, `role`, `data-*`, `aria-*`, `style`, and so on. So `<p class="lead">` or `<h2 class="title" id="x">` stay editable and are saved as written. Event handler attributes (`onclick`, …) are never kept; such an element stays an HTML block.
 
-`tiptapeditor.preserve_style_attribute` (on by default) keeps inline `style` attributes unchanged. When it is off, inline styles may be dropped when the content is edited; content with styles still opens.
+The key `preserveStyleAttribute` (default `true`) keeps inline `style` attributes unchanged. When it is `false`, inline styles may be dropped when the content is edited; content with styles still opens.
 
 Class presets give content managers a list of approved classes:
 

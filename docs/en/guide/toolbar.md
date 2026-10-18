@@ -44,7 +44,7 @@ The **Button** column shows the name you see in the manager (English lexicon).
 |---|---|---|
 | `undo` | Undo | Undoes the last change (Ctrl/Cmd+Z). |
 | `redo` | Redo | Redoes it (Ctrl/Cmd+Shift+Z). |
-| `heading` | Text style | Menu: Paragraph and the heading levels from `tiptapeditor.heading_levels`. |
+| `heading` | Text style | Menu: Paragraph and the heading levels from the profile key `headingLevels`. |
 | `paragraph` | Paragraph | Turns the block into a paragraph. |
 | `h1` … `h6` | Heading 1 … Heading 6 | Turns the block into that heading level (or back into a paragraph). |
 | `paragraphClass` | Paragraph style | Menu of class presets for paragraphs and headings from `tiptapeditor.paragraph_classes`. Shown only when presets are set. Other classes of the element stay. |
@@ -135,12 +135,12 @@ The table commands appear anyway on the table toolbar while the cursor is in a t
 
 | Condition | Effect |
 |---|---|
-| `tiptapeditor.enable_tables` off | `table` and all table commands are hidden. |
-| `tiptapeditor.enable_images` off | `image`, `imageUpload`, `imageUrl` and `gallery` are hidden. |
-| `tiptapeditor.enable_gallery` off | `gallery` is hidden. |
-| `tiptapeditor.enable_iframe` off | `embed` is hidden. |
-| `tiptapeditor.enable_fullscreen` off | `fullscreen` is hidden. |
-| A level missing from `tiptapeditor.heading_levels` | That `h1` … `h6` item is hidden and the level is not in the `heading` menu. |
+| Not listed in the toolbar | Not shown: this is how you remove a button. |
+| `"features": {"tables": false}` in a [profile](./profiles#what-a-profile-may-set) | `table` and all table commands are hidden. |
+| `"features": {"images": false}` | `image`, `imageUpload`, `imageUrl` and `gallery` are hidden. |
+| `"features": {"gallery": false}` | `gallery` is hidden. |
+| `"features": {"iframe": false}` | `embed` is hidden. |
+| A level missing from the profile key `headingLevels` | That `h1` … `h6` item is hidden and the level is not in the `heading` menu. |
 | `tiptapeditor.upload_enabled` off, or no Media Source | `imageUpload` and `imageUrl` are hidden. |
 | No access to the field's Media Source | `file` is disabled; the image dialog has no **Choose in Media Browser…** button. |
 | An extension switched off in a profile or the external config (for example `"highlight": false`) | Its buttons are hidden. |

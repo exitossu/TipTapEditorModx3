@@ -34,6 +34,7 @@ check('every placeholder is filled in', $paths->folder('a/{context}/{palias}/{pi
     $paths->folder('a/{context}/{palias}/{pid}/{alias}-{id}/{uid}/{y}/{m}/{d}/{h}{i}{s}/{t}/'));
 check('an empty value removes its folder level ({tid} of the content field)', $paths->folder('assets/uploads/{tid}/') === 'assets/uploads/');
 check('{rand} has the configured length', (bool)preg_match('#^r/[a-z0-9]{8}/$#', $paths->folder('r/{rand}/')), $paths->folder('r/{rand}/'));
+check('{rand:N} has N characters', (bool)preg_match('#^r/[a-z0-9]{12}/[a-z0-9]{8}-$#', $paths->folder('r/{rand:12}/') . $paths->prefix('{rand}-')), $paths->folder('r/{rand:12}/'));
 check('literal ".." and leading slashes are dropped', $paths->folder('/../assets/./x/') === 'assets/x/', $paths->folder('/../assets/./x/'));
 $evil = new UploadPath(['id' => 1, 'alias' => '../../core/config', 'palias' => 'a/b\\c'], 6, $time);
 check('a value cannot add or leave folders', $evil->folder('assets/{alias}/{palias}/') === 'assets/.-.-core-config/a-b-c/', $evil->folder('assets/{alias}/{palias}/'));

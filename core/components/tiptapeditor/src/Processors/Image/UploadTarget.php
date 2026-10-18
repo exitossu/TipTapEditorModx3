@@ -40,7 +40,7 @@ trait UploadTarget
             'tid' => (int)$this->getProperty('tv', 0) ?: '',
             'uid' => (int)$this->modx->user->get('id'),
         ];
-        $paths = new UploadPath($values, (int)$this->modx->getOption('tiptapeditor.upload_rand_length', null, 6));
+        $paths = new UploadPath($values);
 
         return ['path' => $paths->folder($folder), 'prefix' => $paths->prefix($prefix)];
     }

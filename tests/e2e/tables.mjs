@@ -9,7 +9,7 @@ const php = (script, ...args) => execFileSync('php', [fileURLToPath(new URL(scri
 const db = (id) => JSON.parse(php('./read-resource.php', String(id)));
 const asSubmitted = (value) => value.replace(/\r?\n/g, '\r\n');
 
-php('./set-system-settings.php', 'which_editor', 'TipTapEditor', 'use_editor', '1', 'tiptapeditor.enable_tables', '1',
+php('./set-system-settings.php', 'which_editor', 'TipTapEditor', 'use_editor', '1', 'tiptapeditor.profiles', '',
     'tiptapeditor.toolbar', 'undo redo | bold italic | table', 'tiptapeditor.table_classes', '{"table table--striped":"Striped"}');
 const { resources, fixtures } = JSON.parse(php('./fixtures-setup.php'));
 
@@ -148,7 +148,7 @@ await save();
 check('table with <caption> saved unchanged', db(resources.tablebad).content === asSubmitted(fixtures.tablebad), db(resources.tablebad).content);
 
 // 8. Tables switched off: no table button, tables stay in the textarea.
-php('./set-system-settings.php', 'tiptapeditor.enable_tables', '0');
+php('./set-system-settings.php', 'tiptapeditor.profiles', JSON.stringify({ default: { features: { tables: false } } }));
 await open(`/manager/?a=resource/update&id=${resources.tables}`);
 const off = await page.evaluate(() => ({
     mounted: Boolean(window.TipTapEditor.getInstance('ta')),
@@ -162,5 +162,5 @@ check('with tables off, content saved unchanged', db(resources.tables).content =
 
 check('no page errors', errors.length === 0, errors.join('; '));
 await browser.close();
-php('./set-system-settings.php', 'tiptapeditor.enable_tables', '1', 'tiptapeditor.table_classes', '');
+php('./set-system-settings.php', 'tiptapeditor.profiles', '', 'tiptapeditor.table_classes', '');
 process.exit(failed ? 1 : 0);

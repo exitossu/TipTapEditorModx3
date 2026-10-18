@@ -4,6 +4,54 @@ outline: false
 
 # История изменений
 
+## 0.1.0-alpha22
+
+- Меньше системны�
+ настроек: 26 вместо 49. Настройками остаётся только то, что почти каждый сайт
+  меняет под себя; редко нужные собраны в новом разделе «Расширенные» (gallery_templates_path,
+  fenom_tags, links_across_contexts, resource_link_format, media_source, media_url_mode,
+  upload_file_prefix).
+- Удалённые настройки и куда они перее�
+али (все ключи по-прежнему работают в профиля�
+ и внешнем
+  JSON):
+  heading_levels, bubble_menu, floating_menu, slash_commands, statusbar, sticky_toolbar,
+  paste_as_text, preserve_style_attribute, iframe_allowed_attributes, lightbox_label,
+  protect_modx_syntax, modx_autocomplete -> ключи headingLevels, bubbleMenu, floatingMenu,
+  slashCommands, statusbar, stickyToolbar, pasteAsText, preserveStyleAttribute,
+  iframeAllowedAttributes, lightboxLabel, protectModxSyntax, modxAutocomplete;
+  enable_tables, enable_images, enable_iframe, enable_gallery -> "features": {"tables": false, …};
+  enable_fullscreen -> просто не указывайте fullscreen в панели;
+  default_height, autogrow -> min_height и max_height (равные значения — фиксированная высота,
+  max_height 0 — без ограничения);
+  protect_fenom_syntax, fenom_autocomplete -> новая настройка tiptapeditor.fenom: auto (по
+  умолчанию: Fenom защищён, подсказки — если pdoTools обрабатывает Fenom), 1 или 0;
+  upload_rand_length -> {rand:N} в upload_path и upload_file_prefix ({rand} — 6 символов);
+  default_profile, content_profile -> профили с именами «default» и «content».
+- При обновлении для сайта ничего не меняется: значения удалённы�
+ настроек, отличающиеся от
+  значений по умолчанию, записываются во внешний JSON (если tiptapeditor.external_config пуста,
+  создаётся {core_path}config/tiptapeditor.json; копия существующего файла со�
+раняется как .bak)
+  или в оставшиеся настройки, как описано выше. Настройки контекстов, групп и пользователей с
+  удалёнными ключами перечисляются в журнале установки — перенесите и�
+ в профиль.
+- Пустая tiptapeditor.toolbar — панель пакета, поэтому новые кнопки при�
+одят с обновлениями.
+  Панель, совпадающая со старой панелью по умолчанию, при обновлении очищается.
+- Ошибки конфигурации (неверный JSON в профиля�
+, неизвестные ключи, нет внешнего JSON или папки
+  шаблонов галереи) показываются над первым редактором пользователям, которые могут менять
+  системные настройки, а не только пишутся в журнал ошибок.
+- В профиля�
+ и внешнем JSON можно задать также protectModxSyntax, protectFenomSyntax, fenomTags
+  и mediaUrlMode.
+- Настройки описаны в одном месте (src/Config/Settings.php) для сборки, редактора и
+  документации; тесты сверяют и�
+ значения по умолчанию с бандлом. GitHub Actions запускают
+  unit-тесты, сборку и проверку, что закоммиченный бандл совпадает с ис�
+одниками.
+
 ## 0.1.0-alpha21
 
 - Видео в галерея�

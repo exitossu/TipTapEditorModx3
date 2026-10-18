@@ -24,15 +24,12 @@ import { buildExtensions } from './extensions.js';
 
 export { ContentKeptAsSource };
 
+/** Grows with the content from minHeight to maxHeight (0 = no limit); equal values = fixed height. */
 function applyHeight(content, config) {
     const px = (value) => `${Math.max(0, Number(value) || 0)}px`;
     content.style.minHeight = px(config.minHeight);
-    if (config.autogrow) {
-        if (Number(config.maxHeight) > 0) {
-            content.style.maxHeight = px(config.maxHeight);
-        }
-    } else {
-        content.style.height = px(Math.max(config.defaultHeight, config.minHeight));
+    if (Number(config.maxHeight) > 0) {
+        content.style.maxHeight = px(Math.max(Number(config.maxHeight), Number(config.minHeight) || 0));
     }
 }
 

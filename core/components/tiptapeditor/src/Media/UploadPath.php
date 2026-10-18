@@ -9,7 +9,7 @@ use RuntimeException;
  *
  *   {id} {pid} {alias} {palias}   resource and parent resource
  *   {context} {tid} {uid}         context key, TV id (empty for the content field), user id
- *   {rand}                        random string, tiptapeditor.upload_rand_length characters
+ *   {rand} {rand:N}               random string of 6 (or N, 1–32) characters
  *   {t} {y} {m} {d} {h} {i} {s}   timestamp, year, month, day, hour, minute, second
  *
  * The template comes from a system setting; the values may come from content (an alias), so a
@@ -82,6 +82,11 @@ class UploadPath
         if (!str_contains($text, '{')) {
             return $text;
         }
+        $text = preg_replace_callback(
+            '/\{rand:(\d{1,3})\}/',
+            fn (array $m): string => $this->random((int)$m[1]),
+            $text
+        ) ?? $text;
         $time = $this->time ?? time();
         $map = [
             '{id}' => $this->values['id'] ?? '',
@@ -116,11 +121,12 @@ class UploadPath
         return trim(preg_replace('/\.{2,}/', '.', $value) ?? '', '-');
     }
 
-    private function random(): string
+    private function random(?int $length = null): string
     {
+        $length = max(1, min(32, $length ?? $this->randLength));
         $alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
         $out = '';
-        for ($i = 0; $i < $this->randLength; $i++) {
+        for ($i = 0; $i < $length; $i++) {
             $out .= $alphabet[random_int(0, strlen($alphabet) - 1)];
         }
 

@@ -16,7 +16,7 @@ const UPLOADS = 'assets/e2e-uploads/';
 const TOOLBAR = 'undo redo | heading | bold italic underline | bulletList orderedList | blockquote | link | image table embed | source fullscreen';
 const settings = (...pairs) => php('./set-system-settings.php', ...pairs);
 settings('which_editor', 'TipTapEditor', 'use_editor', '1', 'tiptapeditor.toolbar', TOOLBAR,
-    'tiptapeditor.statusbar', '1', 'tiptapeditor.fenom_autocomplete', '1',
+    'tiptapeditor.profiles', JSON.stringify({ default: { statusbar: true } }), 'tiptapeditor.fenom', '1',
     'tiptapeditor.upload_enabled', '1', 'tiptapeditor.upload_path', UPLOADS);
 rmSync(`${site}/${UPLOADS}`, { recursive: true, force: true });
 const { resources, fixtures } = JSON.parse(php('./fixtures-setup.php'));
@@ -191,6 +191,6 @@ check('the other embeds are kept', content.includes('https://www.youtube.com/emb
 
 check('no page errors', errors.length === 0, errors.join('; '));
 await browser.close();
-settings('tiptapeditor.statusbar', '0', 'tiptapeditor.fenom_autocomplete', '0', 'tiptapeditor.upload_enabled', '0', 'tiptapeditor.upload_path', 'assets/uploads/');
+settings('tiptapeditor.profiles', '', 'tiptapeditor.fenom', 'auto', 'tiptapeditor.upload_enabled', '0', 'tiptapeditor.upload_path', 'assets/uploads/');
 rmSync(`${site}/${UPLOADS}`, { recursive: true, force: true });
 process.exit(failed ? 1 : 0);

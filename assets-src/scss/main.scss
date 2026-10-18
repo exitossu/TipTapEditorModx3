@@ -90,6 +90,11 @@
         border-left-color: #c0392b;
         background: #fdf1f0;
     }
+
+    &--warning {
+        border-left-color: #d68910;
+        background: #fef5e7;
+    }
 }
 
 // Short status message inside an editor (ui/Message.js).

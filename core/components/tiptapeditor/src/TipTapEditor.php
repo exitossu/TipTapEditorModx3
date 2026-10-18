@@ -9,6 +9,7 @@ use MODX\Revolution\Sources\modMediaSource;
 use MODX\Revolution\modX;
 use TipTapEditor\Config\ExternalConfig;
 use TipTapEditor\Config\SettingParser;
+use TipTapEditor\Config\Settings;
 use TipTapEditor\Gallery\TemplateFiles;
 
 /**
@@ -20,7 +21,7 @@ use TipTapEditor\Gallery\TemplateFiles;
 class TipTapEditor
 {
     /** Must match package.json "version" + "modx.release"; _build/build.php enforces it. */
-    public const VERSION = '0.1.0-alpha21';
+    public const VERSION = '0.1.0-alpha22';
 
     public const NAMESPACE = 'tiptapeditor';
 
@@ -31,6 +32,9 @@ class TipTapEditor
 
     /** @var array<string, mixed> */
     protected array $config;
+
+    /** @var string[] Configuration errors of the last getConfig() call. */
+    protected array $configErrors = [];
 
     /**
      * @param array<string, mixed> $config
@@ -122,66 +126,82 @@ class TipTapEditor
     }
 
     /**
-     * Base configuration handed to the JS bundle. Editor-specific options are merged
-     * in by the OnRichTextEditorInit handler.
+     * Base configuration handed to the JS bundle: every setting of Config\Settings with a "js"
+     * key, plus the few that need work on the server. Editor-specific options are merged in by
+     * the OnRichTextEditorInit handler.
      *
      * @return array<string, mixed>
      */
     public function getConfig(): array
     {
-        return [
+        $this->configErrors = [];
+        $config = [
             'version' => $this->getVersion(),
             'editorName' => $this->getEditorName(),
             'connectorUrl' => $this->getConnectorUrl(),
             'assetsUrl' => $this->getAssetsUrl(),
-            'debug' => $this->getBoolOption('debug'),
-            'toolbar' => (string)$this->getOption('toolbar', [], ''),
-            'headingLevels' => (string)$this->getOption('heading_levels', [], '1,2,3,4,5,6'),
-            'stickyToolbar' => $this->getBoolOption('sticky_toolbar', [], true),
-            'minHeight' => (int)$this->getOption('min_height', [], 200),
-            'maxHeight' => (int)$this->getOption('max_height', [], 700),
-            'defaultHeight' => (int)$this->getOption('default_height', [], 300),
-            'autogrow' => $this->getBoolOption('autogrow', [], true),
-            'protectModxSyntax' => $this->getBoolOption('protect_modx_syntax', [], true),
-            'protectFenomSyntax' => $this->getBoolOption('protect_fenom_syntax', [], true),
-            'fenomTags' => (string)$this->getOption('fenom_tags', [], ''),
-            'features' => [
-                'fullscreen' => $this->getBoolOption('enable_fullscreen', [], true),
-                'images' => $this->getBoolOption('enable_images', [], true),
-                'tables' => $this->getBoolOption('enable_tables', [], true),
-                'iframe' => $this->getBoolOption('enable_iframe', [], true),
-                'gallery' => $this->getBoolOption('enable_gallery', [], true),
-            ],
-            'bubbleMenu' => $this->getBoolOption('bubble_menu', [], true),
-            'floatingMenu' => $this->getBoolOption('floating_menu', [], true),
-            'slashCommands' => $this->getBoolOption('slash_commands', [], true),
-            'statusbar' => $this->getBoolOption('statusbar', [], false),
-            'pasteAsText' => $this->getBoolOption('paste_as_text', [], false),
-            'iframeAllowedAttributes' => (string)$this->getOption('iframe_allowed_attributes', [], ''),
-            'iframeAllowedHosts' => (string)$this->getOption('iframe_allowed_hosts', [], ''),
-            'modxAutocomplete' => $this->getBoolOption('modx_autocomplete', [], true),
-            'fenomAutocomplete' => $this->getBoolOption('fenom_autocomplete', [], false),
+        ];
+        foreach (Settings::all() as $key => $setting) {
+            if (!isset($setting['js'])) {
+                continue;
+            }
+            $default = $setting['value'];
+            $config[$setting['js']] = match (true) {
+                is_bool($default) => $this->getBoolOption($key, [], $default),
+                is_int($default) => (int)$this->getOption($key, [], $default),
+                default => trim((string)$this->getOption($key, [], $default)),
+            };
+        }
+        if ($config['toolbar'] === '') {
+            // Empty: the package's toolbar (DEFAULT_TOOLBAR in the bundle).
+            unset($config['toolbar']);
+        }
+        $fenom = $this->getFenomMode();
+
+        $config += [
+            'protectFenomSyntax' => $fenom !== 'off',
+            'fenomAutocomplete' => $fenom === 'on',
             // Uploads go through MODX's own Browser/File/Upload processor, which checks
             // file_upload and the Media Source policies again on every request.
             'uploadEnabled' => $this->getBoolOption('upload_enabled', [], false) && $this->modx->hasPermission('file_upload'),
-            'uploadPath' => (string)$this->getOption('upload_path', [], 'assets/uploads/'),
-            // Placeholders ({id}, {alias}, {y} …) are filled in on the server for each upload.
-            'uploadFilePrefix' => (string)$this->getOption('upload_file_prefix', [], ''),
             'mediaUrlMode' => $this->getOption('media_url_mode', [], 'relative') === 'root' ? 'root' : 'relative',
             'siteBaseUrl' => (string)$this->modx->getOption('base_url', null, '/'),
-            'resourceLinkFormat' => (string)$this->getOption('resource_link_format', [], '[[~{id}]]'),
-            'linkClasses' => (string)$this->getOption('link_classes', [], ''),
-            'imageClasses' => (string)$this->getOption('image_classes', [], ''),
-            'lightbox' => $this->getBoolOption('lightbox', [], false),
-            'lightboxAttribute' => (string)$this->getOption('lightbox_attribute', [], ''),
-            'lightboxLabel' => (string)$this->getOption('lightbox_label', [], ''),
-            'galleryTemplate' => (string)$this->getOption('gallery_template', [], 'grid'),
             'galleryTemplateFiles' => (object)$this->getGalleryTemplateFiles(),
-            'tableClasses' => (string)$this->getOption('table_classes', [], ''),
-            'paragraphClasses' => (string)$this->getOption('paragraph_classes', [], ''),
-            'preserveStyleAttribute' => $this->getBoolOption('preserve_style_attribute', [], true),
             'lexicon' => $this->getLexiconForJs(),
         ] + $this->getLayeredConfig();
+
+        // Users who may change system settings see configuration errors in the editor too.
+        if ($this->configErrors && $this->modx->hasPermission('settings')) {
+            $config['configErrors'] = array_values(array_unique($this->configErrors));
+        }
+
+        return $config;
+    }
+
+    /**
+     * tiptapeditor.fenom: "off" (0, no) leaves Fenom alone, "on" (1, yes) protects it and offers
+     * autocomplete, "auto" (default) always protects it and offers autocomplete when pdoTools parses
+     * Fenom (pdotools_fenom_default or pdotools_fenom_parser).
+     *
+     * @return 'on'|'protect'|'off'
+     */
+    public function getFenomMode(): string
+    {
+        $value = strtolower(trim((string)$this->getOption('fenom', [], 'auto')));
+        if (in_array($value, ['0', 'off', 'no', 'false'], true)) {
+            return 'off';
+        }
+        if (in_array($value, ['1', 'on', 'yes', 'true'], true)) {
+            return 'on';
+        }
+        foreach (['pdotools_fenom_default', 'pdotools_fenom_parser'] as $key) {
+            $flag = $this->modx->getOption($key, null, false);
+            if ($flag && !in_array(strtolower((string)$flag), ['0', 'false', 'no'], true)) {
+                return 'on';
+            }
+        }
+
+        return 'protect';
     }
 
     /**
@@ -222,14 +242,13 @@ class TipTapEditor
         $result = [
             'contentCss' => $parser->urlList((string)$this->getOption('content_css', [], ''), $urls, 'tiptapeditor.content_css'),
             'profiles' => (object)$profiles,
-            'defaultProfile' => (string)$this->getOption('default_profile', [], 'default'),
-            'contentProfile' => (string)$this->getOption('content_profile', [], ''),
             'tvProfiles' => (object)$parser->tvProfiles((string)$this->getOption('tv_profiles', [], ''), 'tiptapeditor.tv_profiles'),
             'external' => (object)$externalConfig,
         ];
 
-        foreach (array_merge($parser->errors, $external->errors) as $error) {
+        foreach (array_merge($external->errors, $parser->errors) as $error) {
             $this->modx->log(modX::LOG_LEVEL_WARN, $error, '', 'TipTapEditor');
+            $this->configErrors[] = $error;
         }
 
         return $result;
@@ -252,12 +271,13 @@ class TipTapEditor
         $files = new TemplateFiles([$placeholders['{core_path}'], $placeholders['{base_path}']], $placeholders);
         $this->loadLexicon();
         $templates = $files->load(
-            (string)$this->getOption('gallery_templates_path', [], TemplateFiles::DEFAULT_PATH),
+            (string)$this->getOption('gallery_templates_path', [], Settings::default('gallery_templates_path')),
             fn (string $name): string => $this->modx->lexicon->exists(self::NAMESPACE . '.gallery_template_' . $name)
                 ? 'gallery_template_' . $name : $name,
         );
         foreach ($files->errors as $error) {
             $this->modx->log(modX::LOG_LEVEL_WARN, $error, '', 'TipTapEditor');
+            $this->configErrors[] = $error;
         }
 
         return $templates;

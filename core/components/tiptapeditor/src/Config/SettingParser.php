@@ -9,13 +9,17 @@ namespace TipTapEditor\Config;
  */
 class SettingParser
 {
-    /** Configuration keys a profile or the external config may set (data only). */
+    /**
+     * Configuration keys a profile or the external config may set (data only). The same list as
+     * CONFIG_KEYS in assets-src/js/editor/config.js (a unit test compares them).
+     */
     public const CONFIG_KEYS = [
         'toolbar', 'headingLevels', 'colors', 'highlightColors', 'stickyToolbar', 'features',
-        'minHeight', 'maxHeight', 'defaultHeight', 'autogrow', 'linkClasses', 'imageClasses',
+        'minHeight', 'maxHeight', 'linkClasses', 'imageClasses',
         'tableClasses', 'paragraphClasses', 'imageAlignClasses', 'resourceLinkFormat', 'contentCss',
         'preserveStyleAttribute', 'extensions', 'editorProps', 'bubbleMenu', 'floatingMenu', 'slashCommands',
         'statusbar', 'pasteAsText', 'iframeAllowedAttributes', 'iframeAllowedHosts', 'modxAutocomplete', 'fenomAutocomplete',
+        'protectModxSyntax', 'protectFenomSyntax', 'fenomTags', 'mediaUrlMode',
         'lightbox', 'lightboxAttribute', 'lightboxLabel', 'galleryTemplate',
     ];
 

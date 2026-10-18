@@ -1,5 +1,39 @@
 Changelog for TipTapEditor
 
+0.1.0-alpha22
+- Fewer system settings: 26 instead of 49. Only what almost every site adjusts stays a setting;
+  rarely needed ones are in the new area "Advanced" (gallery_templates_path, fenom_tags,
+  links_across_contexts, resource_link_format, media_source, media_url_mode, upload_file_prefix).
+- Removed settings and where they went (all keys still work in profiles and the external config):
+  heading_levels, bubble_menu, floating_menu, slash_commands, statusbar, sticky_toolbar,
+  paste_as_text, preserve_style_attribute, iframe_allowed_attributes, lightbox_label,
+  protect_modx_syntax, modx_autocomplete -> the keys headingLevels, bubbleMenu, floatingMenu,
+  slashCommands, statusbar, stickyToolbar, pasteAsText, preserveStyleAttribute,
+  iframeAllowedAttributes, lightboxLabel, protectModxSyntax, modxAutocomplete;
+  enable_tables, enable_images, enable_iframe, enable_gallery -> "features": {"tables": false, …};
+  enable_fullscreen -> leave "fullscreen" out of the toolbar;
+  default_height, autogrow -> min_height and max_height (equal values = a fixed height,
+  max_height 0 = no limit);
+  protect_fenom_syntax, fenom_autocomplete -> the new setting tiptapeditor.fenom: auto (default:
+  Fenom protected, suggestions when pdoTools parses Fenom), 1 or 0;
+  upload_rand_length -> {rand:N} in upload_path and upload_file_prefix ({rand} is 6 characters);
+  default_profile, content_profile -> profiles named "default" and "content".
+- On upgrade nothing changes for the site: values of removed settings that differ from their
+  defaults are written into the external config (created as {core_path}config/tiptapeditor.json
+  when tiptapeditor.external_config is empty; a copy of an existing file is kept as .bak), or
+  into the remaining settings as listed above. Context, user group and user settings with removed
+  keys are listed in the install log; move them into a profile.
+- An empty tiptapeditor.toolbar is the package's toolbar, so new buttons arrive with updates. A
+  toolbar equal to the old default is emptied on upgrade.
+- Configuration errors (invalid JSON in profiles, unknown keys, a missing external config or
+  gallery template folder) are shown above the first editor to users who may change system
+  settings, not only written to the error log.
+- Profiles and the external config may also set protectModxSyntax, protectFenomSyntax, fenomTags
+  and mediaUrlMode.
+- The settings are defined in one place (src/Config/Settings.php) for the build, the editor and
+  the documentation; tests compare their defaults with the bundle. GitHub Actions run the unit
+  tests, the build and a check that the committed bundle matches the sources.
+
 0.1.0-alpha21
 - Videos in galleries: the gallery dialog takes video files (mp4, webm, ogv, m4v, mov) from the
   Media Browser or the computer, the address of a video file, and video pages of YouTube, VK

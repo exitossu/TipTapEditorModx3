@@ -6,6 +6,8 @@ import { DEFAULT_COLORS, DEFAULT_HIGHLIGHTS } from '../ui/toolbarItems.js';
  *   defaults → MODX system settings → external config (tiptapeditor.external_config)
  *   → profile (tiptapeditor.profiles, chosen per field) → runtime options (TipTapEditor.create).
  * External config and profiles are data: only the keys in CONFIG_KEYS are taken from them.
+ * Only some keys are system settings (core/components/tiptapeditor/src/Config/Settings.php,
+ * same defaults as here); the others are set in a profile or the external config.
  */
 export const DEFAULT_TOOLBAR = 'undo redo | heading | bold italic underline strike code | color highlight'
     + ' | superscript subscript | align | bulletList orderedList | blockquote horizontalRule'
@@ -20,7 +22,8 @@ export const defaults = Object.freeze({
     colors: DEFAULT_COLORS,
     highlightColors: DEFAULT_HIGHLIGHTS,
     stickyToolbar: true,
-    features: { fullscreen: true, images: true, tables: true, iframe: true, gallery: true },
+    // Content the editor understands; off = no button, such content is kept as raw HTML blocks.
+    features: { images: true, tables: true, iframe: true, gallery: true },
     // Menus: true = default items, false = off, a string = the toolbar items to show.
     bubbleMenu: true,
     floatingMenu: true,
@@ -63,12 +66,14 @@ export const defaults = Object.freeze({
     galleryTemplateFiles: {},
     // Tables: class presets (tiptapeditor.table_classes) offered in the table dialog.
     tableClasses: '',
+    // Paragraphs and headings: class presets (tiptapeditor.paragraph_classes).
+    paragraphClasses: '',
     // Runtime extension point: async (file, { editor }) => url for dropped/pasted images.
     uploadHandler: null,
+    // Height of the editing area: grows with the content from minHeight up to maxHeight
+    // (0 = no limit); minHeight = maxHeight is a fixed height.
     minHeight: 200,
     maxHeight: 700,
-    defaultHeight: 300,
-    autogrow: true,
     // Inline style attributes of paragraphs, headings, lists and marks are kept as written;
     // off: they may be dropped when the content is edited.
     preserveStyleAttribute: true,
@@ -79,12 +84,14 @@ export const defaults = Object.freeze({
     syncDelay: 150,
     // Site CSS shown in the editor (tiptapeditor.content_css), scoped to the editing area.
     contentCss: [],
-    // Profiles: { name: { toolbar, features, … } }; which one a field uses.
+    // Profiles: { name: { toolbar, features, … } }; "default" applies to every field, "content"
+    // to the resource content and other non-TV fields, tvProfiles maps TV names to profiles.
     profiles: {},
     profile: null,
-    defaultProfile: 'default',
-    contentProfile: '',
     tvProfiles: {},
+    // Problems of the configuration (invalid JSON, unknown keys), shown to users who may
+    // change system settings.
+    configErrors: [],
     // Built-in or registered extensions by name: false = off, object = options.
     extensionOptions: {},
     // Extra attributes of the editable element (external config "editorProps.attributes").
@@ -94,10 +101,11 @@ export const defaults = Object.freeze({
 /** Keys a profile or the external config may set (the same list as SettingParser.php). */
 export const CONFIG_KEYS = Object.freeze([
     'toolbar', 'headingLevels', 'colors', 'highlightColors', 'stickyToolbar', 'features',
-    'minHeight', 'maxHeight', 'defaultHeight', 'autogrow', 'linkClasses', 'imageClasses',
+    'minHeight', 'maxHeight', 'linkClasses', 'imageClasses',
     'tableClasses', 'paragraphClasses', 'imageAlignClasses', 'resourceLinkFormat', 'contentCss',
     'preserveStyleAttribute', 'extensions', 'editorProps', 'bubbleMenu', 'floatingMenu', 'slashCommands',
     'statusbar', 'pasteAsText', 'iframeAllowedAttributes', 'iframeAllowedHosts', 'modxAutocomplete', 'fenomAutocomplete',
+    'protectModxSyntax', 'protectFenomSyntax', 'fenomTags', 'mediaUrlMode',
     'lightbox', 'lightboxAttribute', 'lightboxLabel', 'galleryTemplate',
 ]);
 
@@ -143,8 +151,8 @@ function editorAttributes(value) {
 
 /**
  * Profile name for a field: runtime option, else the TV's entry in tiptapeditor.tv_profiles,
- * else tiptapeditor.content_profile for other fields (resource content, chunks), else
- * tiptapeditor.default_profile.
+ * else the profile "content" for other fields (resource content, chunks) when it exists,
+ * else "default" (applied only when such a profile exists).
  */
 export function profileName(config, { field = null, options = {} } = {}) {
     if (options.profile) {
@@ -154,10 +162,10 @@ export function profileName(config, { field = null, options = {} } = {}) {
     if (byTv) {
         return byTv;
     }
-    if (!field && config.contentProfile) {
-        return config.contentProfile;
+    if (!field && config.profiles?.content) {
+        return 'content';
     }
-    return config.defaultProfile || 'default';
+    return 'default';
 }
 
 function normalizeLevels(value) {

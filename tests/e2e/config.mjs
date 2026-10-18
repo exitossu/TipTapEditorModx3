@@ -32,8 +32,7 @@ writeFileSync('/tmp/tiptapeditor-outside.json', JSON.stringify({ toolbar: 'bold'
 const settings = (...pairs) => php('./set-system-settings.php', ...pairs);
 settings('which_editor', 'TipTapEditor', 'use_editor', '1',
     'tiptapeditor.toolbar', 'undo redo | paragraphClass bold italic highlight | source',
-    'tiptapeditor.profiles', JSON.stringify({ article: { toolbar: 'paragraphClass bold italic underline link | source', minHeight: 240 } }),
-    'tiptapeditor.content_profile', 'article',
+    'tiptapeditor.profiles', JSON.stringify({ content: { toolbar: 'paragraphClass bold italic underline link | source', minHeight: 240 } }),
     'tiptapeditor.tv_profiles', 'rt_one=simple',
     'tiptapeditor.external_config', '{core_path}config/tiptapeditor-e2e.json',
     'tiptapeditor.content_css', '{assets_url}e2e/css/content.css',
@@ -132,7 +131,7 @@ check('external config outside the site is ignored', (await items(editorSel)).in
 
 check('no page errors', errors.length === 0, errors.join('; '));
 await browser.close();
-settings('tiptapeditor.profiles', '', 'tiptapeditor.content_profile', '', 'tiptapeditor.tv_profiles', '', 'tiptapeditor.external_config', '',
+settings('tiptapeditor.profiles', '', 'tiptapeditor.tv_profiles', '', 'tiptapeditor.external_config', '',
     'tiptapeditor.content_css', '', 'tiptapeditor.paragraph_classes', '');
 rmSync(`${site}/core/config/tiptapeditor-e2e.json`, { force: true });
 rmSync('/tmp/tiptapeditor-outside.json', { force: true });

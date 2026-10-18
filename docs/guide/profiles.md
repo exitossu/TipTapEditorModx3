@@ -1,6 +1,8 @@
 # Профили и конфигурация
 
-Системных настроек хватает, когда редактор везде одинаковый. Если полям нужны разные панели — полный набор для статьи, три кнопки для анонса — используйте **профили**. Для тонкой настройки, которой нет в системных настройках, есть **внешний JSON-файл**.
+В системных настройках только то, что почти каждый сайт меняет под себя: панель, CSS, классы, загрузка, галерея. Всё остальное (меню, строка состояния, уровни заголовков, включение функций, защита тегов и т. д.) задаётся **профилями** и **внешним JSON-файлом** — ключи перечислены [ниже](#profile-keys).
+
+Профили нужны и тогда, когда полям нужны разные панели: полный набор для статьи, три кнопки для анонса.
 
 ## Порядок применения
 
@@ -12,7 +14,7 @@
 4. профиль поля;
 5. параметры `TipTapEditor.create()` из JavaScript (для разработчиков).
 
-Неверные значения пропускаются и записываются в журнал ошибок MODX (уровень WARN), а редактор работает с остальными.
+Неверные значения пропускаются и записываются в журнал ошибок MODX (уровень WARN), а редактор работает с остальными. Пользователи с правом `settings` (кто может менять системные настройки) видят эти ошибки и над первым редактором на странице.
 
 ## Профили
 
@@ -31,11 +33,21 @@
 
 ### Какой профиль у поля
 
-| Настройка | Для чего |
+Профиль выбирается по имени, отдельных настроек для этого нет:
+
+| Профиль | Для чего |
 |---|---|
-| `tiptapeditor.content_profile` | Поле «Содержимое» ресурса (и другие поля, которые не TV). Пусто — профиль по умолчанию. |
-| `tiptapeditor.tv_profiles` | Профили для отдельных TV. |
-| `tiptapeditor.default_profile` | Всё остальное. Значение `default` означает «без профиля, только настройки». |
+| из `tiptapeditor.tv_profiles` | Отдельные TV (см. ниже). |
+| `content` | Поле «Содержимое» ресурса и другие поля, которые не TV. Если такого профиля нет — `default`. |
+| `default` | Все остальные поля. Если такого профиля нет — только настройки. |
+
+```json
+{
+    "default": { "statusbar": true },
+    "content": { "toolbar": "undo redo | heading paragraphClass | bold italic | link image gallery table | source" },
+    "simple": { "toolbar": "bold italic link", "floatingMenu": false, "slashCommands": false }
+}
+```
 
 `tiptapeditor.tv_profiles` записывается по строке на TV или через запятую:
 
@@ -56,28 +68,36 @@ TV указывается по имени или как `tv<ID>` (`tv12`).
 
 ### Что можно задать в профиле {#profile-keys}
 
-| Ключ | Что задаёт | Аналог в системных настройках |
-|---|---|---|
-| `toolbar` | Панель: строка или список (см. [Панель инструментов](./toolbar)) | `toolbar` |
-| `headingLevels` | Уровни заголовков, например `[2, 3]` | `heading_levels` |
-| `colors`, `highlightColors` | Палитры цвета текста и выделения, список цветов `["#000000", "#c00000"]` | — |
-| `stickyToolbar` | Закреплённая панель | `sticky_toolbar` |
-| `features` | Включение функций: `{"tables": false, "images": false, "gallery": false, "iframe": false, "fullscreen": false}` | `enable_*` |
-| `minHeight`, `maxHeight`, `defaultHeight`, `autogrow` | Высота редактора | `min_height` и др. |
-| `bubbleMenu`, `floatingMenu`, `slashCommands` | Меню: `true`, `false` или список кнопок | `bubble_menu` и др. |
-| `statusbar` | Строка состояния | `statusbar` |
-| `pasteAsText` | Вставка только текстом | `paste_as_text` |
-| `linkClasses`, `imageClasses`, `tableClasses`, `paragraphClasses` | Пресеты классов (см. ниже) | `*_classes` |
-| `imageAlignClasses` | Классы выравнивания картинок: `{"left": "float-start", "center": "mx-auto", "right": "float-end"}` | — |
-| `resourceLinkFormat` | Формат ссылки на ресурс | `resource_link_format` |
-| `contentCss` | CSS сайта в редакторе (строка или список) | `content_css` |
-| `preserveStyleAttribute` | Сохранять атрибуты `style` | `preserve_style_attribute` |
-| `iframeAllowedAttributes`, `iframeAllowedHosts` | Правила для iframe | `iframe_allowed_*` |
-| `modxAutocomplete`, `fenomAutocomplete` | Подсказки тегов | `*_autocomplete` |
-| `lightbox`, `lightboxAttribute`, `lightboxLabel` | «Увеличение по клику» | `lightbox*` |
-| `galleryTemplate` | Шаблон новых галерей | `gallery_template` |
-| `extensions` | Выключить или настроить расширения по имени (см. ниже) | — |
-| `editorProps` | Атрибуты области редактирования (см. ниже) | — |
+Те же ключи принимает внешний JSON-файл. Ключи без системной настройки задаются только здесь.
+
+| Ключ | Что задаёт | По умолчанию | Системная настройка |
+|---|---|---|---|
+| `toolbar` | Панель: строка или список (см. [Панель инструментов](./toolbar)) | панель пакета | `toolbar` |
+| `headingLevels` | Уровни заголовков, например `[2, 3]` | `[1, 2, 3, 4, 5, 6]` | — |
+| `colors`, `highlightColors` | Палитры цвета текста и выделения, список цветов `["#000000", "#c00000"]` | встроенные | — |
+| `stickyToolbar` | Закреплённая панель при прокрутке | `true` | — |
+| `features` | Какое содержимое понимает редактор: `{"tables": false, "images": false, "gallery": false, "iframe": false}`. Выключенное остаётся в тексте HTML-блоком и не теряется | всё `true` | — |
+| `minHeight`, `maxHeight` | Высота области редактирования; `maxHeight: 0` — без ограничения, равные значения — фиксированная высота | `200`, `700` | `min_height`, `max_height` |
+| `bubbleMenu`, `floatingMenu`, `slashCommands` | Меню: `true`, `false` или список кнопок (см. ниже) | `true` | — |
+| `statusbar` | Строка состояния (слова, символы, путь элемента) | `false` | — |
+| `pasteAsText` | Вставка только текстом | `false` | — |
+| `linkClasses`, `imageClasses`, `tableClasses`, `paragraphClasses` | Пресеты классов (см. ниже) | — | `*_classes` |
+| `imageAlignClasses` | Классы выравнивания картинок: `{"left": "float-start", "center": "mx-auto", "right": "float-end"}` | `align-left` и т. д. | — |
+| `resourceLinkFormat` | Формат ссылки на ресурс | `[[~{id}]]` | `resource_link_format` |
+| `contentCss` | CSS сайта в редакторе (строка или список) | — | `content_css` |
+| `preserveStyleAttribute` | Сохранять атрибуты `style` без изменений | `true` | — |
+| `iframeAllowedAttributes` | Разрешённые атрибуты iframe через запятую (`on*` удаляются всегда) | `src,width,height,allow,allowfullscreen,loading,title,name,referrerpolicy,frameborder,class,id,style` | — |
+| `iframeAllowedHosts` | Разрешённые хосты iframe | любой | `iframe_allowed_hosts` |
+| `protectModxSyntax` | Защита тегов MODX (см. [Теги MODX и Fenom](./modx-syntax)) | `true` | — |
+| `protectFenomSyntax`, `fenomAutocomplete` | Защита Fenom и подсказки переменных | по `fenom` | `fenom` |
+| `fenomTags` | Свои теги Fenom | — | `fenom_tags` |
+| `modxAutocomplete` | Подсказки тегов MODX | `true` | — |
+| `mediaUrlMode` | `relative` или `root` для URL файлов | `relative` | `media_url_mode` |
+| `lightbox`, `lightboxAttribute` | «Увеличение по клику» | `false`, — | `lightbox`, `lightbox_attribute` |
+| `lightboxLabel` | `aria-label` ссылки увеличения, `{alt}` — текст картинки | «Открыть изображение: {alt}» | — |
+| `galleryTemplate` | Шаблон новых галерей | `grid` | `gallery_template` |
+| `extensions` | Выключить или настроить расширения по имени (см. ниже) | — | — |
+| `editorProps` | Атрибуты области редактирования (см. ниже) | — | — |
 
 Другие ключи игнорируются.
 
@@ -136,7 +156,7 @@ TV указывается по имени или как `tv<ID>` (`tv12`).
 Кнопки выключенных расширений пропадают с панели. Расширения, от которых зависит сохранность содержимого (HTML-блоки, теги MODX/Fenom, абзацы без `<p>`, сохранение атрибутов), выключить нельзя — такие ключи игнорируются.
 
 ::: tip
-Уровни заголовков задавайте ключом `headingLevels` (или настройкой `tiptapeditor.heading_levels`), а не параметром `levels` расширения `heading` — он всегда берётся из `headingLevels`.
+Уровни заголовков задавайте ключом `headingLevels`, а не параметром `levels` расширения `heading` — он всегда берётся из `headingLevels`.
 :::
 
 ### `editorProps`
@@ -164,7 +184,7 @@ TV указывается по имени или как `tv<ID>` (`tv12`).
 
 Абзацы, заголовки, цитаты, списки, пункты списков, блоки кода, горизонтальные линии, ссылки и строчные элементы сохраняют все атрибуты, для которых у редактора нет поля: `id`, `class`, `title`, `lang`, `dir`, `role`, `data-*`, `aria-*`, `style`. Поэтому `<p class="lead">` или `<h2 class="title" id="x">` остаются обычным редактируемым текстом и сохраняются как написаны. Атрибуты-обработчики событий (`onclick` и т. п.) не сохраняются никогда — такой элемент становится [HTML-блоком](./modx-syntax#raw-html).
 
-`tiptapeditor.preserve_style_attribute` (включена по умолчанию) сохраняет inline-атрибуты `style` как есть. Если выключить, при правке они могут пропасть; содержимое со стилями при этом всё равно открывается.
+Ключ `preserveStyleAttribute` (по умолчанию `true`) сохраняет inline-атрибуты `style` как есть. Если задать `false`, при правке они могут пропасть; содержимое со стилями при этом всё равно открывается.
 
 ### Пресеты классов
 

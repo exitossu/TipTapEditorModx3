@@ -48,14 +48,18 @@ describe('localization', () => {
     });
 
     it('every system setting has a name and a description in en and ru', () => {
-        const settings = [...readFileSync(join(root, '_build/elements/settings.php'), 'utf8').matchAll(/^\s*'([a-z_]+)' => \[/gm)].map((m) => m[1]);
-        expect(settings.length).toBeGreaterThan(30);
+        const settings = [...readFileSync(join(root, 'core/components/tiptapeditor/src/Config/Settings.php'), 'utf8').matchAll(/^\s*'([a-z_]+)' => \[/gm)].map((m) => m[1]);
+        expect(settings.length).toBeGreaterThan(20);
         for (const lang of ['en', 'ru']) {
             const strings = lexicon(lang, 'setting');
             for (const key of settings) {
                 expect(strings.has(`setting_tiptapeditor.${key}`), `${lang} ${key}`).toBe(true);
                 expect(strings.has(`setting_tiptapeditor.${key}_desc`), `${lang} ${key}_desc`).toBe(true);
             }
+            // No strings left for removed settings.
+            const named = [...strings.keys()].filter((k) => k.startsWith('setting_tiptapeditor.') && !k.endsWith('_desc'))
+                .map((k) => k.slice('setting_tiptapeditor.'.length));
+            expect(named.sort(), lang).toEqual([...settings].sort());
         }
     });
 });
