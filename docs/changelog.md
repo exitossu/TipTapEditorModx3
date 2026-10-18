@@ -7,7 +7,7 @@ outline: false
 ## 0.1.0-alpha22
 
 - Меньше системны�
- настроек: 26 вместо 51. Настройками остаётся только то, что почти каждый сайт
+ настроек: 26 вместо 49. Настройками остаётся только то, что почти каждый сайт
   меняет под себя; редко нужные собраны в новом разделе «Расширенные» (gallery_templates_path,
   fenom_tags, links_across_contexts, resource_link_format, media_source, media_url_mode,
   upload_file_prefix).

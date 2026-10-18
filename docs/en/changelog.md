@@ -6,7 +6,7 @@ outline: false
 
 ## 0.1.0-alpha22
 
-- Fewer system settings: 26 instead of 51. Only what almost every site adjusts stays a setting;
+- Fewer system settings: 26 instead of 49. Only what almost every site adjusts stays a setting;
   rarely needed ones are in the new area "Advanced" (gallery_templates_path, fenom_tags,
   links_across_contexts, resource_link_format, media_source, media_url_mode, upload_file_prefix).
 - Removed settings and where they went (all keys still work in profiles and the external config):

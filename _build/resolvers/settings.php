@@ -230,8 +230,8 @@ if ($json) {
 
 // 5. New areas of moved settings.
 $schema = $corePath . 'components/tiptapeditor/src/Config/Settings.php';
-if (is_file($schema)) {
-    require_once $schema;
+// The class may be loaded already (autoloader, or the build when it installs right away).
+if (class_exists(\TipTapEditor\Config\Settings::class) || (is_file($schema) && require_once $schema)) {
     foreach (\TipTapEditor\Config\Settings::all() as $key => $definition) {
         if (isset($settings[$key]) && $settings[$key]->get('area') !== $definition['area']) {
             $settings[$key]->set('area', $definition['area']);

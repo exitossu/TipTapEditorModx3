@@ -9,6 +9,8 @@
  * editor also reads at runtime.
  */
 
-require_once dirname(__DIR__, 2) . '/core/components/tiptapeditor/src/Config/Settings.php';
+if (!class_exists(\TipTapEditor\Config\Settings::class, false)) {
+    require_once dirname(__DIR__, 2) . '/core/components/tiptapeditor/src/Config/Settings.php';
+}
 
 return \TipTapEditor\Config\Settings::all();
